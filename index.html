@@ -1,0 +1,2621 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#2B4A3F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Lauftrainer">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Mats' Lauftrainer</title>
+
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjQwIiBmaWxsPSIjMkI0QTNGIi8+PHRleHQgeD0iOTAiIHk9IjEyMCIgZm9udC1mYW1pbHk9Ikdlb3JnaWEiIGZvbnQtc2l6ZT0iOTAiIGZvbnQtc3R5bGU9Iml0YWxpYyIgZmlsbD0iI0Y3RjRFRCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+TDwvdGV4dD48L3N2Zz4=">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #F7F4ED;
+  --bg-soft: #F0EBDF;
+  --bg-card: #FFFFFF;
+  --ink: #1A1F1C;
+  --ink-soft: #4A524C;
+  --ink-muted: #80887F;
+  --line: #D9D5CB;
+  --line-soft: #E5E1D6;
+  --accent: #2B4A3F;
+  --accent-soft: #4A6B5E;
+  --accent-bg: #E8EDE8;
+  --warn: #C8552B;
+  --warn-bg: #F5E5DD;
+  --highlight: #D4A04A;
+  --highlight-bg: #F5EDD9;
+  --success: #4A8B5F;
+  --success-bg: #E0EDE2;
+  --shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+[data-theme="dark"] {
+  --bg: #0F1714;
+  --bg-soft: #161E1A;
+  --bg-card: #1B2520;
+  --ink: #E8E2D3;
+  --ink-soft: #B8B3A5;
+  --ink-muted: #80887F;
+  --line: #2A3530;
+  --line-soft: #1F2925;
+  --accent: #7BA388;
+  --accent-soft: #5C8369;
+  --accent-bg: #1F2925;
+  --warn: #E07849;
+  --warn-bg: #2A1A12;
+  --highlight: #D4A04A;
+  --highlight-bg: #2A2412;
+  --success: #6BB37F;
+  --success-bg: #1A2A1F;
+  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html { -webkit-text-size-adjust: 100%; background: var(--bg); }
+
+body {
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  font-size: 16px; line-height: 1.6; color: var(--ink);
+  background: var(--bg);
+  background-image: 
+    radial-gradient(circle at 20% 10%, rgba(43, 74, 63, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(212, 160, 74, 0.02) 0%, transparent 50%);
+  min-height: 100vh; min-height: 100dvh;
+  padding: env(safe-area-inset-top) 0 calc(80px + env(safe-area-inset-bottom)) 0;
+  transition: background 0.3s, color 0.3s;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 1; opacity: 0.4;
+  background-image: 
+    repeating-radial-gradient(circle at 0 0, transparent 0, var(--bg) 4px),
+    repeating-linear-gradient(rgba(0,0,0,0.01), rgba(0,0,0,0.005));
+  mix-blend-mode: multiply;
+}
+
+/* Top header */
+.app-header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.app-header-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; max-width: 700px; margin: 0 auto;
+}
+.brand {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 500; font-size: 18px; letter-spacing: -0.02em;
+  display: flex; align-items: baseline; gap: 6px;
+}
+.brand em { font-style: italic; font-weight: 400; color: var(--accent); }
+.brand-week {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-muted);
+  background: var(--accent-bg); color: var(--accent); padding: 3px 7px; border-radius: 4px;
+}
+.theme-toggle {
+  background: transparent; border: 1px solid var(--line); width: 34px; height: 34px;
+  border-radius: 50%; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; font-size: 14px; color: var(--ink-soft);
+}
+
+/* Main */
+main { max-width: 700px; margin: 0 auto; padding: 20px 18px; position: relative; z-index: 2; }
+.screen { display: none; animation: fadeIn 0.3s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Bottom nav (mobile-first) */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  background: var(--bg-card);
+  border-top: 1px solid var(--line);
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom)) 0;
+  display: flex; justify-content: space-around;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.nav-btn {
+  background: transparent; border: none; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 6px 12px; color: var(--ink-muted); flex: 1; max-width: 80px;
+  transition: color 0.15s;
+}
+.nav-btn .ic {
+  font-size: 22px; line-height: 1; font-family: 'Fraunces', Georgia, serif;
+  font-style: italic; font-weight: 300;
+}
+.nav-btn .lbl {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.nav-btn.active { color: var(--accent); }
+.nav-btn.active .ic { font-weight: 500; }
+.nav-btn:active { transform: scale(0.92); }
+
+/* Section headers */
+.eyebrow {
+  font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.18em; color: var(--accent);
+  margin-bottom: 10px;
+}
+.title-l {
+  font-family: 'Fraunces', Georgia, serif; font-size: clamp(28px, 7vw, 38px);
+  font-weight: 400; line-height: 1.1; letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+.title-l em { font-style: italic; font-weight: 300; color: var(--accent); }
+.lead { font-size: 15px; color: var(--ink-soft); margin-bottom: 24px; }
+
+.section-hero { margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+
+h2.h-card {
+  font-family: 'Fraunces', Georgia, serif; font-weight: 500; font-size: 20px;
+  margin-bottom: 14px; letter-spacing: -0.005em;
+}
+h3.h-sub {
+  font-family: 'Manrope', sans-serif; font-weight: 600; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-muted);
+  margin: 24px 0 10px 0;
+}
+h3.h-sub:first-child { margin-top: 0; }
+
+/* Card */
+.card {
+  background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow);
+}
+.card.tight { padding: 14px 16px; }
+.card.featured { background: var(--accent-bg); border-color: var(--accent); }
+.card.warn { background: var(--warn-bg); border-color: var(--warn); }
+.card.success { background: var(--success-bg); border-color: var(--success); }
+
+/* Today view */
+.today-greet {
+  font-family: 'Fraunces', Georgia, serif; font-weight: 400; font-size: 28px;
+  letter-spacing: -0.01em; line-height: 1.15; margin-bottom: 4px;
+}
+.today-greet em { font-style: italic; color: var(--accent); }
+.today-date {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 22px;
+}
+
+.workout-card {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-soft) 100%);
+  color: white; border-radius: 16px; padding: 22px; margin-bottom: 18px;
+  position: relative; overflow: hidden;
+}
+.workout-card::before {
+  content: ''; position: absolute; top: -30px; right: -30px;
+  width: 120px; height: 120px; border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+}
+.workout-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.15em; opacity: 0.8; margin-bottom: 6px;
+}
+.workout-title {
+  font-family: 'Fraunces', Georgia, serif; font-size: 24px; font-weight: 500;
+  margin-bottom: 6px; letter-spacing: -0.01em;
+}
+.workout-meta {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  opacity: 0.85; margin-bottom: 16px;
+}
+.workout-actions { display: flex; gap: 8px; flex-wrap: wrap; position: relative; z-index: 1; }
+.action-btn {
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+  color: white; padding: 9px 16px; border-radius: 100px; font-size: 13px;
+  font-weight: 500; cursor: pointer; font-family: inherit;
+  backdrop-filter: blur(4px); transition: all 0.15s;
+}
+.action-btn:active { transform: scale(0.96); background: rgba(255,255,255,0.25); }
+.action-btn.primary { background: white; color: var(--accent); border-color: white; font-weight: 600; }
+
+.rest-card {
+  background: var(--bg-soft); border: 1px dashed var(--line);
+  border-radius: 14px; padding: 28px 22px; text-align: center; margin-bottom: 18px;
+}
+.rest-card .ic { font-size: 32px; margin-bottom: 8px; opacity: 0.5; }
+.rest-card h3 {
+  font-family: 'Fraunces', Georgia, serif; font-size: 20px; font-weight: 500;
+  font-style: italic; margin-bottom: 4px;
+}
+.rest-card p { font-size: 13px; color: var(--ink-muted); }
+
+/* Quick log row */
+.quick-log {
+  background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 8px; margin-bottom: 14px;
+}
+.quick-row {
+  display: grid; grid-template-columns: 1fr auto; align-items: center;
+  padding: 12px 14px; border-bottom: 1px solid var(--line-soft);
+  cursor: pointer; transition: background 0.1s;
+}
+.quick-row:last-child { border-bottom: none; }
+.quick-row:active { background: var(--bg-soft); }
+.quick-row .lbl { font-size: 14px; color: var(--ink-soft); }
+.quick-row .val {
+  font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--ink);
+  font-weight: 500; display: flex; align-items: center; gap: 6px;
+}
+.quick-row .val .placeholder { color: var(--ink-muted); font-weight: 400; }
+.quick-row .arrow { color: var(--ink-muted); font-size: 12px; }
+
+/* Stats row */
+.stats-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1px; background: var(--line); border: 1px solid var(--line);
+  border-radius: 12px; overflow: hidden; margin-bottom: 14px;
+}
+.stat-mini { background: var(--bg-card); padding: 14px 10px; text-align: center; }
+.stat-mini .v {
+  font-family: 'Fraunces', Georgia, serif; font-size: 22px; font-weight: 500;
+  color: var(--accent); line-height: 1;
+}
+.stat-mini .l {
+  font-size: 10px; color: var(--ink-muted); text-transform: uppercase;
+  letter-spacing: 0.08em; margin-top: 4px; font-weight: 600;
+}
+
+/* Form modal */
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 200; display: none; align-items: flex-end; justify-content: center;
+  padding: 0; backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+}
+.modal-bg.open { display: flex; animation: fadeIn 0.2s; }
+.modal {
+  background: var(--bg-card); width: 100%; max-width: 700px;
+  border-radius: 20px 20px 0 0; padding: 22px 20px calc(20px + env(safe-area-inset-bottom)) 20px;
+  max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes slideUp { from { transform: translateY(40px); } to { transform: translateY(0); } }
+.modal-handle {
+  width: 36px; height: 4px; background: var(--line); border-radius: 2px;
+  margin: -8px auto 16px auto;
+}
+.modal-title {
+  font-family: 'Fraunces', Georgia, serif; font-size: 22px; font-weight: 500;
+  margin-bottom: 4px; letter-spacing: -0.005em;
+}
+.modal-sub { font-size: 13px; color: var(--ink-muted); margin-bottom: 18px; }
+
+/* Form fields */
+.field { margin-bottom: 16px; }
+.field label {
+  display: block; font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-muted);
+  margin-bottom: 6px;
+}
+.field input, .field textarea, .field select {
+  width: 100%; padding: 12px 14px; font-size: 16px;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--bg); color: var(--ink); font-family: inherit;
+  -webkit-appearance: none; appearance: none;
+}
+.field input:focus, .field textarea:focus, .field select:focus {
+  outline: none; border-color: var(--accent); background: var(--bg-card);
+}
+.field textarea { min-height: 70px; resize: vertical; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+.scale {
+  display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px;
+}
+.scale-btn {
+  background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+  padding: 10px 0; font-size: 13px; font-weight: 600; color: var(--ink-soft);
+  cursor: pointer; font-family: inherit;
+}
+.scale-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+.scale-btn:active { transform: scale(0.94); }
+
+/* Buttons */
+.btn {
+  display: inline-block; padding: 12px 22px; border-radius: 100px;
+  border: 1px solid var(--accent); background: var(--accent); color: white;
+  font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+  text-align: center; transition: all 0.15s;
+}
+.btn:active { transform: scale(0.97); }
+.btn.outline { background: transparent; color: var(--accent); }
+.btn.warn { background: var(--warn); border-color: var(--warn); }
+.btn.full { width: 100%; }
+.btn.small { padding: 8px 14px; font-size: 13px; }
+.btn-row { display: flex; gap: 8px; margin-top: 8px; }
+
+/* Plan view */
+.phase-card {
+  margin-bottom: 14px; border-radius: 14px; overflow: hidden;
+  border: 1px solid var(--line); background: var(--bg-card);
+}
+.phase-head {
+  display: flex; align-items: baseline; gap: 14px; padding: 16px 18px;
+  border-bottom: 1px solid var(--line); background: var(--bg-soft);
+}
+.phase-num {
+  font-family: 'Fraunces', Georgia, serif; font-style: italic;
+  font-weight: 300; font-size: 36px; color: var(--accent); line-height: 1;
+}
+.phase-info-wrap { flex: 1; }
+.phase-info-wrap .l { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-muted); }
+.phase-info-wrap .n { font-family: 'Fraunces', Georgia, serif; font-size: 18px; font-weight: 500; }
+.phase-info-wrap .m { font-size: 12px; color: var(--ink-muted); margin-top: 2px; }
+
+.week-row {
+  display: grid; grid-template-columns: 50px 1fr auto;
+  gap: 10px; align-items: center; padding: 12px 16px;
+  border-bottom: 1px solid var(--line-soft);
+  cursor: pointer; transition: background 0.1s;
+}
+.week-row:last-child { border-bottom: none; }
+.week-row:active { background: var(--bg-soft); }
+.week-row.current {
+  background: var(--accent-bg); border-left: 3px solid var(--accent); padding-left: 13px;
+}
+.week-num {
+  font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 13px;
+}
+.week-row.deload .week-num { color: var(--highlight); }
+.week-row.test .week-num { color: var(--accent); font-weight: 700; }
+.week-row.race .week-num { color: var(--warn); font-weight: 700; }
+.week-info { font-size: 13px; color: var(--ink-soft); }
+.week-info strong { color: var(--ink); font-weight: 500; }
+.week-progress {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--ink-muted); white-space: nowrap;
+}
+.week-progress.done { color: var(--success); }
+
+/* Workout list (in week detail modal) */
+.workout-row {
+  display: grid; grid-template-columns: 40px 1fr auto;
+  gap: 12px; align-items: center; padding: 14px 4px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.workout-row:last-child { border-bottom: none; }
+.workout-day {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; color: var(--ink-muted); letter-spacing: 0.05em;
+}
+.workout-desc { font-size: 14px; color: var(--ink); }
+.workout-desc-meta { font-size: 12px; color: var(--ink-muted); margin-top: 2px; }
+.checkbox {
+  width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--line);
+  background: var(--bg-card); cursor: pointer; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0; transition: all 0.15s;
+}
+.checkbox.checked { background: var(--success); border-color: var(--success); color: white; font-size: 13px; }
+.checkbox:active { transform: scale(0.92); }
+
+/* Recipe list */
+.recipe-row {
+  display: grid; grid-template-columns: 1fr auto auto;
+  gap: 10px; align-items: center; padding: 14px 14px;
+  border-bottom: 1px solid var(--line-soft); cursor: pointer;
+}
+.recipe-row:last-child { border-bottom: none; }
+.recipe-row:active { background: var(--bg-soft); }
+.recipe-name-row { font-family: 'Fraunces', Georgia, serif; font-size: 16px; font-weight: 500; }
+.recipe-meta-row { font-size: 11px; color: var(--ink-muted); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+.qty-control {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 100px;
+  padding: 4px;
+}
+.qty-btn {
+  width: 26px; height: 26px; border-radius: 50%; border: none; background: var(--bg-card);
+  font-size: 14px; font-weight: 600; cursor: pointer; color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+}
+.qty-btn:active { background: var(--accent); color: white; }
+.qty-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; min-width: 18px; text-align: center; font-weight: 600; }
+
+.fab {
+  position: fixed; bottom: calc(82px + env(safe-area-inset-bottom)); right: 18px;
+  background: var(--accent); color: white; border: none; padding: 14px 22px;
+  border-radius: 100px; font-family: inherit; font-size: 14px; font-weight: 600;
+  box-shadow: 0 4px 16px rgba(43, 74, 63, 0.3); cursor: pointer; z-index: 50;
+  display: flex; align-items: center; gap: 8px;
+}
+.fab:active { transform: scale(0.96); }
+.fab .badge {
+  background: white; color: var(--accent); padding: 2px 7px;
+  border-radius: 100px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+}
+
+/* Shopping list */
+.shop-cat {
+  font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent);
+  margin: 18px 0 8px 0; padding-bottom: 6px; border-bottom: 1px solid var(--line);
+}
+.shop-cat:first-child { margin-top: 0; }
+.shop-row {
+  display: grid; grid-template-columns: 24px 1fr auto;
+  gap: 10px; align-items: center; padding: 10px 0;
+}
+.shop-name { font-size: 14px; }
+.shop-name.checked { text-decoration: line-through; color: var(--ink-muted); }
+.shop-qty {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  color: var(--ink-muted); white-space: nowrap;
+}
+
+/* Log / Calendar */
+.log-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;
+}
+.log-stat {
+  background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 14px 12px;
+}
+.log-stat .v {
+  font-family: 'Fraunces', Georgia, serif; font-size: 26px; font-weight: 500;
+  color: var(--accent); line-height: 1;
+}
+.log-stat .l {
+  font-size: 10px; color: var(--ink-muted); text-transform: uppercase;
+  letter-spacing: 0.08em; margin-top: 4px; font-weight: 600;
+}
+.log-stat .delta {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; margin-top: 4px;
+}
+.log-stat .delta.up { color: var(--success); }
+.log-stat .delta.down { color: var(--warn); }
+
+.chart-card {
+  background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 16px; margin-bottom: 14px;
+}
+.chart-card-title {
+  font-size: 12px; font-weight: 600; color: var(--ink-soft);
+  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px;
+}
+.chart {
+  width: 100%; height: 80px; display: flex; align-items: flex-end;
+  gap: 3px; position: relative;
+}
+.chart-bar {
+  flex: 1; background: var(--accent-bg); border-radius: 3px 3px 0 0;
+  min-height: 2px; transition: height 0.3s;
+  position: relative;
+}
+.chart-bar.has-data { background: var(--accent); }
+.chart-bar:hover::after {
+  content: attr(data-val); position: absolute; top: -22px; left: 50%;
+  transform: translateX(-50%); font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; background: var(--ink); color: var(--bg); padding: 2px 6px;
+  border-radius: 4px; white-space: nowrap;
+}
+.chart-labels {
+  display: flex; gap: 3px; margin-top: 4px;
+}
+.chart-label {
+  flex: 1; text-align: center; font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; color: var(--ink-muted);
+}
+
+.history-row {
+  display: grid; grid-template-columns: 60px 1fr auto;
+  gap: 10px; align-items: center; padding: 12px 14px;
+  background: var(--bg-card); border: 1px solid var(--line); border-radius: 10px;
+  margin-bottom: 6px; cursor: pointer;
+}
+.history-row:active { background: var(--bg-soft); }
+.history-date {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--ink-muted); text-transform: uppercase; line-height: 1.3;
+}
+.history-date strong { color: var(--ink); display: block; font-size: 14px; }
+.history-summary { font-size: 13px; color: var(--ink-soft); }
+.history-summary strong { color: var(--ink); }
+.history-tag {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 3px 7px;
+  border-radius: 4px; background: var(--accent-bg); color: var(--accent);
+  font-weight: 500;
+}
+
+/* Mehr / Settings */
+.menu-row {
+  display: grid; grid-template-columns: 32px 1fr auto;
+  gap: 12px; align-items: center; padding: 14px 16px;
+  background: var(--bg-card); border-bottom: 1px solid var(--line-soft);
+  cursor: pointer; transition: background 0.1s;
+}
+.menu-row:first-child { border-radius: 12px 12px 0 0; }
+.menu-row:last-child { border-radius: 0 0 12px 12px; border-bottom: none; }
+.menu-row:only-child { border-radius: 12px; }
+.menu-row:active { background: var(--bg-soft); }
+.menu-group { border: 1px solid var(--line); border-radius: 12px; margin-bottom: 14px; overflow: hidden; }
+.menu-icon {
+  font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 400;
+  color: var(--accent); font-size: 18px; text-align: center;
+}
+.menu-content .l { font-size: 14px; }
+.menu-content .s { font-size: 11px; color: var(--ink-muted); margin-top: 2px; }
+.menu-row .arrow { color: var(--ink-muted); font-size: 12px; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: calc(96px + env(safe-area-inset-bottom));
+  left: 50%; transform: translateX(-50%); 
+  background: var(--ink); color: var(--bg);
+  padding: 10px 18px; border-radius: 100px; font-size: 13px; font-weight: 500;
+  z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  max-width: 90%; text-align: center;
+}
+.toast.show { opacity: 1; }
+
+/* Templates display */
+.template-box {
+  background: var(--bg-soft); border: 1px solid var(--line); border-radius: 10px;
+  padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  white-space: pre-wrap; line-height: 1.7; position: relative; margin: 12px 0;
+}
+.copy-btn {
+  position: absolute; top: 10px; right: 10px;
+  background: var(--bg-card); border: 1px solid var(--line); padding: 4px 10px;
+  border-radius: 6px; font-size: 11px; font-family: 'Manrope', sans-serif;
+  font-weight: 500; color: var(--ink-soft); cursor: pointer;
+}
+.copy-btn:active { background: var(--accent); color: white; }
+
+ul.bullets { list-style: none; padding: 0; }
+ul.bullets li {
+  position: relative; padding-left: 16px; margin-bottom: 5px;
+  font-size: 14px; color: var(--ink-soft);
+}
+ul.bullets li::before {
+  content: ''; position: absolute; left: 0; top: 11px; width: 6px; height: 1px;
+  background: var(--accent);
+}
+
+/* Empty state */
+.empty {
+  text-align: center; padding: 40px 20px; color: var(--ink-muted);
+}
+.empty .ic {
+  font-size: 36px; margin-bottom: 10px; opacity: 0.4;
+  font-family: 'Fraunces', Georgia, serif; font-style: italic;
+}
+.empty .t { font-family: 'Fraunces', Georgia, serif; font-size: 18px; font-weight: 500; color: var(--ink-soft); margin-bottom: 4px; }
+.empty .s { font-size: 13px; }
+
+@media (min-width: 600px) {
+  .stats-row { grid-template-columns: repeat(3, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="app-header-inner">
+    <div class="brand">
+      Mats' <em>Lauftrainer</em>
+      <span class="brand-week" id="weekBadge">W 1</span>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()">◐</button>
+  </div>
+</div>
+
+<main>
+
+<!-- ===== HEUTE ===== -->
+<section class="screen active" id="heute">
+  <div class="today-greet" id="greeting">Guten Morgen, <em>Mats</em>.</div>
+  <div class="today-date" id="todayDate">—</div>
+
+  <div id="todayWorkout"></div>
+
+  <h3 class="h-sub">Heute loggen</h3>
+
+  <div class="quick-log">
+    <div class="quick-row" onclick="openLogger('sleep')">
+      <span class="lbl">Schlaf letzte Nacht</span>
+      <span class="val"><span id="logSleep" class="placeholder">— h</span><span class="arrow">›</span></span>
+    </div>
+    <div class="quick-row" onclick="openLogger('rhr')">
+      <span class="lbl">Ruhepuls morgens</span>
+      <span class="val"><span id="logRhr" class="placeholder">— bpm</span><span class="arrow">›</span></span>
+    </div>
+    <div class="quick-row" onclick="openLogger('energy')">
+      <span class="lbl">Energie</span>
+      <span class="val"><span id="logEnergy" class="placeholder">— /10</span><span class="arrow">›</span></span>
+    </div>
+    <div class="quick-row" onclick="openLogger('strength')">
+      <span class="lbl">Krafttraining</span>
+      <span class="val"><span id="logStrength" class="placeholder">—</span><span class="arrow">›</span></span>
+    </div>
+    <div class="quick-row" onclick="openLogger('blackroll')">
+      <span class="lbl">Blackroll</span>
+      <span class="val"><span id="logBlackroll" class="placeholder">—</span><span class="arrow">›</span></span>
+    </div>
+    <div class="quick-row" onclick="openLogger('nutrition')">
+      <span class="lbl">Ernährung / Notiz</span>
+      <span class="val"><span id="logNutrition" class="placeholder">—</span><span class="arrow">›</span></span>
+    </div>
+  </div>
+
+  <h3 class="h-sub">Diese Woche</h3>
+  <div class="stats-row">
+    <div class="stat-mini"><div class="v" id="weekDone">0/4</div><div class="l">Trainings</div></div>
+    <div class="stat-mini"><div class="v" id="weekKm">0</div><div class="l">Min Lauf</div></div>
+    <div class="stat-mini"><div class="v" id="rhrAvg">—</div><div class="l">Ø RHR</div></div>
+  </div>
+</section>
+
+<!-- ===== PLAN ===== -->
+<section class="screen" id="plan">
+  <div class="section-hero">
+    <div class="eyebrow">22 Wochen · 3 Phasen</div>
+    <div class="title-l">Der <em>Plan</em>.</div>
+    <div class="lead">Tippe eine Woche an, um Workouts zu sehen und abzuhaken.</div>
+  </div>
+
+  <div id="planList"></div>
+</section>
+
+<!-- ===== REZEPTE ===== -->
+<section class="screen" id="rezepte">
+  <div class="section-hero">
+    <div class="eyebrow">Meal Prep · Sonntag 2 h</div>
+    <div class="title-l">Rezepte & <em>Einkauf</em>.</div>
+    <div class="lead">Wähle Rezepte aus → ich mache deine Einkaufsliste. Direkt in Apple Notes teilbar.</div>
+  </div>
+
+  <h3 class="h-sub">Verfügbare Rezepte</h3>
+  <div class="card tight" id="recipeList"></div>
+
+  <div id="shoppingFab"></div>
+</section>
+
+<!-- ===== LOG ===== -->
+<section class="screen" id="log">
+  <div class="section-hero">
+    <div class="eyebrow">Verlauf · Trends</div>
+    <div class="title-l">Dein <em>Verlauf</em>.</div>
+    <div class="lead">Was du getrackt hast, was sich verändert.</div>
+  </div>
+
+  <h3 class="h-sub">Letzte 7 Tage</h3>
+  <div class="log-stats">
+    <div class="log-stat">
+      <div class="v" id="stat7Sleep">—</div>
+      <div class="l">Ø Schlaf</div>
+    </div>
+    <div class="log-stat">
+      <div class="v" id="stat7Rhr">—</div>
+      <div class="l">Ø RHR</div>
+    </div>
+    <div class="log-stat">
+      <div class="v" id="stat7Min">0</div>
+      <div class="l">Lauf-Min</div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-title">Ruhepuls · Letzte 14 Tage</div>
+    <div class="chart" id="chartRhr"></div>
+    <div class="chart-labels" id="chartRhrLabels"></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-title">Lauf-Minuten · Letzte 14 Tage</div>
+    <div class="chart" id="chartMin"></div>
+    <div class="chart-labels" id="chartMinLabels"></div>
+  </div>
+
+  <h3 class="h-sub">Historie</h3>
+  <div id="historyList"></div>
+</section>
+
+<!-- ===== MEHR ===== -->
+<section class="screen" id="mehr">
+  <div class="section-hero">
+    <div class="eyebrow">Referenz & Settings</div>
+    <div class="title-l"><em>Mehr</em>.</div>
+  </div>
+
+  <h3 class="h-sub">Coaching-Templates · zum Kopieren</h3>
+  
+  <div class="card">
+    <h2 class="h-card">Pre-Run Quick-Check</h2>
+    <p style="font-size: 13px; color: var(--ink-soft); margin-bottom: 12px;">Wenn etwas auffällig ist – schlecht geschlafen, krank, gestresst. Ich fülle das mit deinen heutigen Daten automatisch aus.</p>
+    <button class="btn full" onclick="generatePreRun()">Pre-Run-Check generieren →</button>
+  </div>
+
+  <div class="card">
+    <h2 class="h-card">Sonntags-Wochenrückblick</h2>
+    <p style="font-size: 13px; color: var(--ink-soft); margin-bottom: 12px;">5 Min · Anker für die nächste Woche. Ich fülle deine Daten der Woche automatisch ein, du ergänzt nur noch das Subjektive.</p>
+    <button class="btn full" onclick="generateWeekReview()">Wochenrückblick generieren →</button>
+  </div>
+
+  <h3 class="h-sub">Kalender & Reminders</h3>
+
+  <div class="card">
+    <p style="font-size: 13px; color: var(--ink-soft); margin-bottom: 14px;">iOS-Push-Notifications für Web-Apps sind unzuverlässig. Stattdessen: Trainings + Reminders direkt in deinen <strong>Apple Calendar</strong>. Native iOS-Notifications, läuft auf allen Geräten, ein Mal einrichten und vergessen.</p>
+    <button class="btn full" onclick="exportTrainingICS()">Trainingsplan in Kalender (.ics) →</button>
+    <p style="font-size: 11px; color: var(--ink-muted); margin-top: 8px;">22 Wochen Plan · Reminders 30 Min vorher</p>
+  </div>
+
+  <div class="card">
+    <p style="font-size: 13px; color: var(--ink-soft); margin-bottom: 14px;">Strategische Reminders ohne Trainings: Long-Run-Frühstück Sa abends, Wochenrückblick So abends, Bluttest jährlich, Schuhe nach 600 km checken.</p>
+    <button class="btn outline full" onclick="exportRemindersICS()">Reminders in Kalender (.ics) →</button>
+  </div>
+
+  <h3 class="h-sub">Quick-Refs</h3>
+  
+  <div class="menu-group">
+    <div class="menu-row" onclick="showRef('zones')">
+      <div class="menu-icon">Z</div>
+      <div class="menu-content"><div class="l">HF-Zonen</div><div class="s">Z2 134–147 · Long-Run-Zone</div></div>
+      <span class="arrow">›</span>
+    </div>
+    <div class="menu-row" onclick="showRef('warmup')">
+      <div class="menu-icon">↑</div>
+      <div class="menu-content"><div class="l">Aufwärm-Protokoll</div><div class="s">8 Min dynamisch</div></div>
+      <span class="arrow">›</span>
+    </div>
+    <div class="menu-row" onclick="showRef('strength')">
+      <div class="menu-icon">+</div>
+      <div class="menu-content"><div class="l">Krafttraining</div><div class="s">Mo Beine · Mi Oberkörper</div></div>
+      <span class="arrow">›</span>
+    </div>
+    <div class="menu-row" onclick="showRef('supplements')">
+      <div class="menu-icon">℞</div>
+      <div class="menu-content"><div class="l">Supplement-Stack</div><div class="s">~20 €/Mt · D3 + B12 + Omega + Mg</div></div>
+      <span class="arrow">›</span>
+    </div>
+    <div class="menu-row" onclick="showRef('blood')">
+      <div class="menu-icon">●</div>
+      <div class="menu-content"><div class="l">Bluttest-Werte</div><div class="s">Ferritin · D3 · B12</div></div>
+      <span class="arrow">›</span>
+    </div>
+    <div class="menu-row" onclick="showRef('blackroll')">
+      <div class="menu-icon">○</div>
+      <div class="menu-content"><div class="l">Blackroll-Routine</div><div class="s">3 Slots · nach Lauf 5 Min</div></div>
+      <span class="arrow">›</span>
+    </div>
+    <div class="menu-row" onclick="showRef('knee')">
+      <div class="menu-icon">!</div>
+      <div class="menu-content"><div class="l">Knie-Warnsignale</div><div class="s">Wann sofort pausieren</div></div>
+      <span class="arrow">›</span>
+    </div>
+  </div>
+
+  <h3 class="h-sub">Settings</h3>
+  
+  <div class="menu-group">
+    <div class="menu-row" onclick="openSettings()">
+      <div class="menu-icon">⚙</div>
+      <div class="menu-content"><div class="l">Einstellungen</div><div class="s">Aktuelle Woche, Werte, etc.</div></div>
+      <span class="arrow">›</span>
+    </div>
+    <div class="menu-row" onclick="exportData()">
+      <div class="menu-icon">↓</div>
+      <div class="menu-content"><div class="l">Daten exportieren</div><div class="s">Backup als JSON</div></div>
+      <span class="arrow">›</span>
+    </div>
+    <div class="menu-row" onclick="importData()">
+      <div class="menu-icon">↑</div>
+      <div class="menu-content"><div class="l">Daten importieren</div><div class="s">Backup wiederherstellen</div></div>
+      <span class="arrow">›</span>
+    </div>
+  </div>
+
+  <p style="font-size: 11px; color: var(--ink-muted); text-align: center; margin-top: 30px; line-height: 1.6;">
+    Mats' Lauftrainer · v3<br>
+    Daten lokal auf deinem Gerät · Nichts in der Cloud<br>
+    Updates über Claude
+  </p>
+</section>
+
+</main>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-screen="heute"><span class="ic">◐</span><span class="lbl">Heute</span></button>
+  <button class="nav-btn" data-screen="plan"><span class="ic">≡</span><span class="lbl">Plan</span></button>
+  <button class="nav-btn" data-screen="rezepte"><span class="ic">◊</span><span class="lbl">Rezepte</span></button>
+  <button class="nav-btn" data-screen="log"><span class="ic">∿</span><span class="lbl">Verlauf</span></button>
+  <button class="nav-btn" data-screen="mehr"><span class="ic">+</span><span class="lbl">Mehr</span></button>
+</nav>
+
+<!-- Modal container -->
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============= DATA =============
+
+const PLAN = [
+  // Phase 1
+  { week: 1, phase: 1, workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 30, zone: 'Z2', desc: '30 Min locker in Z2 (134–147 bpm)' },
+    { day: 'do', label: 'Easy Run', minutes: 30, zone: 'Z2', desc: '30 Min locker in Z2' },
+    { day: 'so', label: 'Long Run', minutes: 40, zone: 'Z2', desc: '40 Min Long Run, locker in Z2' }
+  ]},
+  { week: 2, phase: 1, workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 30, zone: 'Z2', desc: '30 Min Z2' },
+    { day: 'do', label: 'Easy Run', minutes: 35, zone: 'Z2', desc: '35 Min Z2' },
+    { day: 'so', label: 'Long Run', minutes: 45, zone: 'Z2', desc: '45 Min Long Run Z2' }
+  ]},
+  { week: 3, phase: 1, workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 35, zone: 'Z2', desc: '35 Min Z2' },
+    { day: 'do', label: 'Easy Run', minutes: 35, zone: 'Z2', desc: '35 Min Z2' },
+    { day: 'sa', label: 'Easy Run', minutes: 30, zone: 'Z2', desc: '30 Min Z2' },
+    { day: 'so', label: 'Long Run', minutes: 50, zone: 'Z2', desc: '50 Min Long Run Z2' }
+  ]},
+  { week: 4, phase: 1, deload: true, workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 30, zone: 'Z2', desc: '30 Min Z2 · Entlastungswoche' },
+    { day: 'do', label: 'Easy Run', minutes: 30, zone: 'Z2', desc: '30 Min Z2 · Entlastung' },
+    { day: 'so', label: 'Long Run', minutes: 40, zone: 'Z2', desc: '40 Min Z2 · Entlastung' }
+  ]},
+  { week: 5, phase: 1, workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 35, zone: 'Z2', desc: '35 Min Z2' },
+    { day: 'do', label: 'Easy Run', minutes: 40, zone: 'Z2', desc: '40 Min Z2' },
+    { day: 'sa', label: 'Easy Run', minutes: 30, zone: 'Z2', desc: '30 Min Z2' },
+    { day: 'so', label: 'Long Run', minutes: 55, zone: 'Z2', desc: '55 Min Long Run Z2' }
+  ]},
+  { week: 6, phase: 1, workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 40, zone: 'Z2', desc: '40 Min Z2' },
+    { day: 'do', label: 'Easy Run', minutes: 40, zone: 'Z2', desc: '40 Min Z2' },
+    { day: 'sa', label: 'Easy Run', minutes: 30, zone: 'Z2', desc: '30 Min Z2' },
+    { day: 'so', label: 'Long Run', minutes: 65, zone: 'Z2', desc: '65 Min Long Run Z2' }
+  ]},
+  { week: 7, phase: 1, workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 40, zone: 'Z2', desc: '40 Min Z2' },
+    { day: 'do', label: 'Easy Run', minutes: 45, zone: 'Z2', desc: '45 Min Z2' },
+    { day: 'sa', label: 'Easy Run', minutes: 35, zone: 'Z2', desc: '35 Min Z2' },
+    { day: 'so', label: 'Long Run', minutes: 75, zone: 'Z2', desc: '75 Min Long Run Z2' }
+  ]},
+  { week: 8, phase: 1, test: 'A', workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 35, zone: 'Z2', desc: '35 Min Z2' },
+    { day: 'do', label: 'Easy Run', minutes: 35, zone: 'Z2', desc: '35 Min Z2' },
+    { day: 'so', label: 'TEST A', minutes: 45, zone: 'TEST', desc: '8 Min W/U + 30 Min konstant Z2 (142 bpm) + 5 Min C/D · Track: Pace bei dieser HF' }
+  ]},
+  // Phase 2
+  { week: 9, phase: 2, workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 40, zone: 'Z2', desc: '40 Min Z2' },
+    { day: 'do', label: 'Easy Run', minutes: 35, zone: 'Z2', desc: '35 Min Z2' },
+    { day: 'sa', label: 'Quality', minutes: 50, zone: 'Z4', desc: '8 Min W/U + 6×2 Min Z4 (2 Min Trab) + 5 Min C/D' },
+    { day: 'so', label: 'Long Run', minutes: 75, zone: 'Z2', desc: '75 Min Long Run Z2' }
+  ]},
+  { week: 10, phase: 2, workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 45, zone: 'Z2', desc: '45 Min Z2' },
+    { day: 'do', label: 'Easy + Strides', minutes: 40, zone: 'Z2', desc: '40 Min Z2 + 4×100m Strides' },
+    { day: 'sa', label: 'Quality', minutes: 55, zone: 'Z4', desc: '8 Min W/U + 4×4 Min Z4 (2 Min Trab) + 5 Min C/D' },
+    { day: 'so', label: 'Long Run', minutes: 85, zone: 'Z2', desc: '85 Min Long Run Z2' }
+  ]},
+  { week: 11, phase: 2, workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 45, zone: 'Z2', desc: '45 Min Z2' },
+    { day: 'do', label: 'Easy Run', minutes: 40, zone: 'Z2', desc: '40 Min Z2' },
+    { day: 'sa', label: 'Tempo', minutes: 50, zone: 'Z4', desc: '10 Min W/U + 20 Min Tempodauerlauf Z4 + 5 Min C/D' },
+    { day: 'so', label: 'Long Run', minutes: 95, zone: 'Z2', desc: '95 Min Long Run Z2' }
+  ]},
+  { week: 12, phase: 2, deload: true, workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 35, zone: 'Z2', desc: '35 Min Z2 · Entlastung' },
+    { day: 'do', label: 'Easy Run', minutes: 30, zone: 'Z2', desc: '30 Min Z2 · Entlastung' },
+    { day: 'sa', label: 'Light Quality', minutes: 40, zone: 'Z4', desc: '8 Min W/U + 4×3 Min Z4 + C/D' },
+    { day: 'so', label: 'Long Run', minutes: 70, zone: 'Z2', desc: '70 Min Z2 · Entlastung' }
+  ]},
+  { week: 13, phase: 2, workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 50, zone: 'Z2', desc: '50 Min Z2' },
+    { day: 'do', label: 'Easy + Strides', minutes: 45, zone: 'Z2', desc: '45 Min Z2 + 4×100m Strides' },
+    { day: 'sa', label: 'Tempo', minutes: 60, zone: 'Z4', desc: '10 Min W/U + 2×15 Min Z4 (3 Min Trab) + 5 Min C/D' },
+    { day: 'so', label: 'Long Run', minutes: 105, zone: 'Z2', desc: '105 Min Long Run Z2' }
+  ]},
+  { week: 14, phase: 2, test: 'B', workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 50, zone: 'Z2', desc: '50 Min Z2' },
+    { day: 'do', label: 'Easy Run', minutes: 30, zone: 'Z2', desc: '30 Min Z2' },
+    { day: 'sa', label: 'TEST B: 10K', minutes: 65, zone: 'TEST', desc: '10 Min W/U + 4×100m Strides + 10 km Race-Effort + C/D · HM-Prognose' },
+    { day: 'so', label: 'Easy Long', minutes: 75, zone: 'Z2', desc: '75 Min easy nach Test' }
+  ]},
+  // Phase 3
+  { week: 15, phase: 3, workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 50, zone: 'Z2', desc: '50 Min Z2' },
+    { day: 'do', label: 'Easy Run', minutes: 45, zone: 'Z2', desc: '45 Min Z2' },
+    { day: 'sa', label: 'HM-Pace', minutes: 55, zone: 'Z3-4', desc: '10 Min W/U + 3×8 Min HM-Pace (5:40, 3 Min Trab) + C/D' },
+    { day: 'so', label: 'Long Run', minutes: 110, zone: 'Z2', desc: '110 Min Long Run Z2' }
+  ]},
+  { week: 16, phase: 3, workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 55, zone: 'Z2', desc: '55 Min Z2' },
+    { day: 'do', label: 'Easy + Strides', minutes: 50, zone: 'Z2', desc: '50 Min Z2 + Strides' },
+    { day: 'sa', label: 'HM-Pace', minutes: 65, zone: 'Z3-4', desc: '10 Min W/U + 2×20 Min HM-Pace (3 Min Trab) + C/D' },
+    { day: 'so', label: 'Long Run', minutes: 120, zone: 'Z2', desc: '120 Min Long Run Z2' }
+  ]},
+  { week: 17, phase: 3, workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 55, zone: 'Z2', desc: '55 Min Z2' },
+    { day: 'do', label: 'Easy Run', minutes: 50, zone: 'Z2', desc: '50 Min Z2' },
+    { day: 'sa', label: 'HM-Pace Block', minutes: 50, zone: 'Z3-4', desc: '10 Min W/U + 30 Min HM-Pace + C/D' },
+    { day: 'so', label: 'Long Run', minutes: 130, zone: 'Z2', desc: '130 Min Long Run Z2' }
+  ]},
+  { week: 18, phase: 3, deload: true, workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 40, zone: 'Z2', desc: '40 Min Z2 · Entlastung' },
+    { day: 'do', label: 'Easy Run', minutes: 35, zone: 'Z2', desc: '35 Min Z2 · Entlastung' },
+    { day: 'sa', label: 'Light HM-Pace', minutes: 45, zone: 'Z3-4', desc: '8 Min W/U + 4×5 Min HM-Pace + C/D' },
+    { day: 'so', label: 'Long Run', minutes: 90, zone: 'Z2', desc: '90 Min Z2 · Entlastung' }
+  ]},
+  { week: 19, phase: 3, workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 55, zone: 'Z2', desc: '55 Min Z2' },
+    { day: 'do', label: 'Easy Run', minutes: 50, zone: 'Z2', desc: '50 Min Z2' },
+    { day: 'sa', label: 'HM-Pace', minutes: 75, zone: 'Z3-4', desc: '10 Min W/U + 2×25 Min HM-Pace (3 Min Trab) + C/D' },
+    { day: 'so', label: 'Long Run', minutes: 140, zone: 'Z2', desc: '140 Min Long Run Z2 · längster Lauf' }
+  ]},
+  { week: 20, phase: 3, test: 'C', workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 50, zone: 'Z2', desc: '50 Min Z2' },
+    { day: 'do', label: 'Easy Run', minutes: 40, zone: 'Z2', desc: '40 Min Z2' },
+    { day: 'sa', label: 'TEST C: 16K', minutes: 90, zone: 'TEST', desc: '16 km bei HM-Pace (5:40) · misst Konstanz und HF-Drift' },
+    { day: 'so', label: 'Easy Long', minutes: 90, zone: 'Z2', desc: '90 Min easy nach Test' }
+  ]},
+  { week: 21, phase: 3, deload: true, workouts: [
+    { day: 'di', label: 'Easy Run', minutes: 40, zone: 'Z2', desc: '40 Min Z2 · Taper' },
+    { day: 'do', label: 'Easy Run', minutes: 30, zone: 'Z2', desc: '30 Min Z2 · Taper' },
+    { day: 'sa', label: 'Sharpen', minutes: 35, zone: 'Z3-4', desc: '8 Min W/U + 3×5 Min HM-Pace + C/D' },
+    { day: 'so', label: 'Long Run', minutes: 70, zone: 'Z2', desc: '70 Min Z2 · Taper' }
+  ]},
+  { week: 22, phase: 3, race: true, workouts: [
+    { day: 'di', label: 'Shake-out', minutes: 30, zone: 'Z2', desc: '30 Min sehr locker' },
+    { day: 'do', label: 'Sharpen', minutes: 20, zone: 'Z3-4', desc: '20 Min mit kurzen Pickups' },
+    { day: 'sa', label: 'Pre-Race', minutes: 20, zone: 'Z2', desc: '20 Min sehr locker + 3×100m Strides' },
+    { day: 'so', label: 'HALBMARATHON', minutes: 120, zone: 'RACE', desc: 'Wettkampf · 21.1 km in <2:00 h · ~5:40er Pace' }
+  ]}
+];
+
+const RECIPES = [
+  {
+    id: 'overnight_oats',
+    name: 'Overnight Oats Master',
+    portions: 5,
+    time: 15,
+    note: 'Reicht für 5 Frühstücke',
+    ingredients: [
+      { name: 'Haferflocken', amount: 250, unit: 'g', cat: 'Trockenwaren' },
+      { name: 'Skyr (Magerquark)', amount: 750, unit: 'g', cat: 'Kühlware' },
+      { name: 'Milch / Hafermilch', amount: 500, unit: 'ml', cat: 'Kühlware' },
+      { name: 'Chia-Samen', amount: 5, unit: 'EL', cat: 'Trockenwaren' },
+      { name: 'Honig', amount: 5, unit: 'TL', cat: 'Vorrat' },
+      { name: 'Bananen', amount: 3, unit: 'St', cat: 'Obst & Gemüse' },
+      { name: 'Beeren (TK)', amount: 250, unit: 'g', cat: 'Tiefkühl' },
+      { name: 'Mandeln', amount: 50, unit: 'g', cat: 'Trockenwaren' },
+      { name: 'Walnüsse', amount: 50, unit: 'g', cat: 'Trockenwaren' },
+      { name: 'Erdnussmus', amount: 100, unit: 'g', cat: 'Vorrat' }
+    ],
+    macros: { kcal: 450, p: 20, c: 55, f: 18 }
+  },
+  {
+    id: 'bolognese',
+    name: 'Linsen-Bolognese',
+    portions: 5,
+    time: 30,
+    note: 'Big Batch · mit Pasta abends',
+    ingredients: [
+      { name: 'Rote Linsen oder Berglinsen', amount: 400, unit: 'g', cat: 'Trockenwaren' },
+      { name: 'Zwiebeln', amount: 2, unit: 'St', cat: 'Obst & Gemüse' },
+      { name: 'Knoblauchzehen', amount: 4, unit: 'St', cat: 'Obst & Gemüse' },
+      { name: 'Karotten', amount: 2, unit: 'St', cat: 'Obst & Gemüse' },
+      { name: 'Sellerie-Stangen', amount: 2, unit: 'St', cat: 'Obst & Gemüse' },
+      { name: 'Stückige Tomaten (Dose)', amount: 2, unit: 'Dose', cat: 'Konserven' },
+      { name: 'Tomatenmark', amount: 3, unit: 'EL', cat: 'Konserven' },
+      { name: 'Gemüsebrühe', amount: 500, unit: 'ml', cat: 'Vorrat' },
+      { name: 'Olivenöl', amount: 4, unit: 'EL', cat: 'Vorrat' },
+      { name: 'Vollkornpasta', amount: 500, unit: 'g', cat: 'Trockenwaren' },
+      { name: 'Parmesan', amount: 100, unit: 'g', cat: 'Kühlware' }
+    ],
+    macros: { kcal: 450, p: 22, c: 65, f: 10 }
+  },
+  {
+    id: 'curry',
+    name: 'Kichererbsen-Curry',
+    portions: 5,
+    time: 30,
+    note: 'Big Batch · mit Reis',
+    ingredients: [
+      { name: 'Kichererbsen (Dose)', amount: 3, unit: 'Dose', cat: 'Konserven' },
+      { name: 'Stückige Tomaten (Dose)', amount: 2, unit: 'Dose', cat: 'Konserven' },
+      { name: 'Kokosmilch (Dose)', amount: 1, unit: 'Dose', cat: 'Konserven' },
+      { name: 'Zwiebeln', amount: 2, unit: 'St', cat: 'Obst & Gemüse' },
+      { name: 'Knoblauchzehen', amount: 4, unit: 'St', cat: 'Obst & Gemüse' },
+      { name: 'Ingwer (Stück)', amount: 1, unit: 'St', cat: 'Obst & Gemüse' },
+      { name: 'Currypulver', amount: 3, unit: 'EL', cat: 'Vorrat' },
+      { name: 'Babyspinat (TK)', amount: 200, unit: 'g', cat: 'Tiefkühl' },
+      { name: 'Reis', amount: 500, unit: 'g', cat: 'Trockenwaren' }
+    ],
+    macros: { kcal: 520, p: 18, c: 60, f: 22 }
+  },
+  {
+    id: 'chili',
+    name: 'Veggie-Chili',
+    portions: 5,
+    time: 35,
+    note: 'Big Batch · mit Brot oder Reis',
+    ingredients: [
+      { name: 'Kidneybohnen (Dose)', amount: 1, unit: 'Dose', cat: 'Konserven' },
+      { name: 'Schwarze Bohnen (Dose)', amount: 1, unit: 'Dose', cat: 'Konserven' },
+      { name: 'Kichererbsen (Dose)', amount: 1, unit: 'Dose', cat: 'Konserven' },
+      { name: 'Mais (Dose)', amount: 1, unit: 'Dose', cat: 'Konserven' },
+      { name: 'Stückige Tomaten (Dose)', amount: 2, unit: 'Dose', cat: 'Konserven' },
+      { name: 'Zwiebeln', amount: 2, unit: 'St', cat: 'Obst & Gemüse' },
+      { name: 'Knoblauchzehen', amount: 4, unit: 'St', cat: 'Obst & Gemüse' },
+      { name: 'Paprika', amount: 2, unit: 'St', cat: 'Obst & Gemüse' },
+      { name: 'Tomatenmark', amount: 2, unit: 'EL', cat: 'Konserven' },
+      { name: '70% Schokolade', amount: 1, unit: 'St', cat: 'Vorrat' },
+      { name: 'Olivenöl', amount: 2, unit: 'EL', cat: 'Vorrat' }
+    ],
+    macros: { kcal: 490, p: 24, c: 70, f: 8 }
+  },
+  {
+    id: 'energy_balls',
+    name: 'Energy Balls',
+    portions: 8,
+    time: 15,
+    note: 'Für Long Runs · halten 2 Wochen',
+    ingredients: [
+      { name: 'Medjool-Datteln (entsteint)', amount: 100, unit: 'g', cat: 'Trockenwaren' },
+      { name: 'Haferflocken', amount: 50, unit: 'g', cat: 'Trockenwaren' },
+      { name: 'Erdnussmus', amount: 30, unit: 'g', cat: 'Vorrat' },
+      { name: 'Honig', amount: 20, unit: 'g', cat: 'Vorrat' },
+      { name: 'Kakaopulver', amount: 1, unit: 'EL', cat: 'Vorrat' },
+      { name: 'Chia-Samen', amount: 1, unit: 'EL', cat: 'Trockenwaren' }
+    ],
+    macros: { kcal: 120, p: 4, c: 16, f: 5 }
+  },
+  {
+    id: 'long_oats',
+    name: 'Mats\' Long-Run-Hafer',
+    portions: 1,
+    time: 5,
+    note: 'Sonntag morgens · 1,5 h vor Long Run',
+    ingredients: [
+      { name: 'Haferflocken', amount: 80, unit: 'g', cat: 'Trockenwaren' },
+      { name: 'Milch', amount: 250, unit: 'ml', cat: 'Kühlware' },
+      { name: 'Banane', amount: 1, unit: 'St', cat: 'Obst & Gemüse' },
+      { name: 'Erdnussmus', amount: 1, unit: 'EL', cat: 'Vorrat' },
+      { name: 'Honig', amount: 1, unit: 'TL', cat: 'Vorrat' }
+    ],
+    macros: { kcal: 520, p: 18, c: 80, f: 18 }
+  },
+  {
+    id: 'recovery_smoothie',
+    name: 'Recovery-Smoothie',
+    portions: 1,
+    time: 3,
+    note: 'Innerhalb 60 Min nach Long Run',
+    ingredients: [
+      { name: 'Skyr / Magerquark', amount: 200, unit: 'g', cat: 'Kühlware' },
+      { name: 'Banane', amount: 1, unit: 'St', cat: 'Obst & Gemüse' },
+      { name: 'Beeren (TK)', amount: 50, unit: 'g', cat: 'Tiefkühl' },
+      { name: 'Haferflocken', amount: 30, unit: 'g', cat: 'Trockenwaren' },
+      { name: 'Milch', amount: 200, unit: 'ml', cat: 'Kühlware' },
+      { name: 'Erdnussmus', amount: 1, unit: 'EL', cat: 'Vorrat' },
+      { name: 'Leinsamen geschrotet', amount: 1, unit: 'EL', cat: 'Trockenwaren' }
+    ],
+    macros: { kcal: 580, p: 35, c: 75, f: 14 }
+  },
+  {
+    id: 'snack_box',
+    name: 'Snack-Boxen (5 Stück)',
+    portions: 5,
+    time: 15,
+    note: 'Für Office / unterwegs · Mo–Fr',
+    ingredients: [
+      { name: 'Eier', amount: 10, unit: 'St', cat: 'Kühlware' },
+      { name: 'Karotten', amount: 5, unit: 'St', cat: 'Obst & Gemüse' },
+      { name: 'Paprika', amount: 3, unit: 'St', cat: 'Obst & Gemüse' },
+      { name: 'Geröstete Kichererbsen', amount: 2, unit: 'Dose', cat: 'Konserven' },
+      { name: 'Gemischte Nüsse', amount: 150, unit: 'g', cat: 'Trockenwaren' },
+      { name: 'Datteln', amount: 10, unit: 'St', cat: 'Trockenwaren' }
+    ],
+    macros: { kcal: 400, p: 18, c: 30, f: 22 }
+  }
+];
+
+// ============= STATE =============
+
+const STORAGE_KEY = 'mats_lauftrainer_v1';
+let State = {
+  settings: {
+    currentWeek: 1,
+    startDate: null,
+    name: 'Mats',
+    weeklyVolumeTarget: 200
+  },
+  logs: {},
+  shopping: { selected: {}, custom: [], checked: {} },
+  trainings: {} // {weekNum: {day: {completed: bool, data: {...}}}}
+};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      State = { ...State, ...parsed };
+    }
+  } catch(e) { console.error('Load failed', e); }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(State));
+  } catch(e) { console.error('Save failed', e); }
+}
+
+// ============= HELPERS =============
+
+function todayKey() {
+  const d = new Date();
+  return d.toISOString().slice(0, 10);
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+  const months = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+  return `${days[d.getDay()]}, ${d.getDate()}. ${months[d.getMonth()]}`;
+}
+
+function getCurrentWeek() {
+  return State.settings.currentWeek || 1;
+}
+
+function getDayOfWeek() {
+  const days = ['so', 'mo', 'di', 'mi', 'do', 'fr', 'sa'];
+  return days[new Date().getDay()];
+}
+
+function todayLog() {
+  const key = todayKey();
+  if (!State.logs[key]) State.logs[key] = { date: key };
+  return State.logs[key];
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ============= RENDER: HEUTE =============
+
+function renderHeute() {
+  const hour = new Date().getHours();
+  let greeting = 'Guten Morgen';
+  if (hour >= 12 && hour < 17) greeting = 'Guten Tag';
+  else if (hour >= 17) greeting = 'Guten Abend';
+  document.getElementById('greeting').innerHTML = `${greeting}, <em>${State.settings.name}</em>.`;
+  document.getElementById('todayDate').textContent = formatDate(todayKey()) + ' · Woche ' + getCurrentWeek();
+  document.getElementById('weekBadge').textContent = 'W ' + getCurrentWeek();
+
+  // Today's workout
+  const today = getDayOfWeek();
+  const week = PLAN.find(w => w.week === getCurrentWeek());
+  const wContainer = document.getElementById('todayWorkout');
+  
+  if (week) {
+    const workout = week.workouts.find(w => w.day === today);
+    if (workout) {
+      const completed = isWorkoutDone(week.week, workout.day);
+      wContainer.innerHTML = `
+        <div class="workout-card">
+          <div class="workout-label">Heute · ${workout.label}</div>
+          <div class="workout-title">${workout.desc.split('·')[0].trim()}</div>
+          <div class="workout-meta">${workout.minutes} Min · Zone ${workout.zone}${workout.desc.includes('·') ? ' · ' + workout.desc.split('·').slice(1).join('·').trim() : ''}</div>
+          <div class="workout-actions">
+            <button class="action-btn ${completed ? '' : 'primary'}" onclick="logWorkoutToday()">${completed ? '✓ Erledigt · ändern' : '+ Lauf loggen'}</button>
+            ${!completed ? '<button class="action-btn" onclick="markWorkout('+week.week+',\''+workout.day+'\',true)">Schnell abhaken</button>' : ''}
+          </div>
+        </div>
+      `;
+    } else {
+      const isFriday = today === 'fr';
+      wContainer.innerHTML = `
+        <div class="rest-card">
+          <div class="ic">∅</div>
+          <h3>${isFriday ? 'Pausentag' : 'Kein Lauf heute'}</h3>
+          <p>${isFriday ? 'Nur Hund-Spaziergang · echter Erholungstag' : 'Kraft oder Erholung laut Plan'}</p>
+        </div>
+      `;
+    }
+  }
+
+  // Quick log values
+  const log = todayLog();
+  document.getElementById('logSleep').textContent = log.sleep ? `${log.sleep} h` : '— h';
+  document.getElementById('logSleep').className = log.sleep ? 'val-set' : 'placeholder';
+  document.getElementById('logRhr').textContent = log.rhr ? `${log.rhr} bpm` : '— bpm';
+  document.getElementById('logRhr').className = log.rhr ? 'val-set' : 'placeholder';
+  document.getElementById('logEnergy').textContent = log.energy ? `${log.energy}/10` : '— /10';
+  document.getElementById('logEnergy').className = log.energy ? 'val-set' : 'placeholder';
+  document.getElementById('logStrength').textContent = log.strength ? log.strength : '—';
+  document.getElementById('logStrength').className = log.strength ? 'val-set' : 'placeholder';
+  document.getElementById('logBlackroll').textContent = log.blackroll ? log.blackroll : '—';
+  document.getElementById('logBlackroll').className = log.blackroll ? 'val-set' : 'placeholder';
+  document.getElementById('logNutrition').textContent = log.nutrition ? log.nutrition.slice(0, 30) + (log.nutrition.length > 30 ? '...' : '') : '—';
+  document.getElementById('logNutrition').className = log.nutrition ? 'val-set' : 'placeholder';
+
+  // Week stats
+  const week2 = PLAN.find(w => w.week === getCurrentWeek());
+  const total = week2 ? week2.workouts.length : 0;
+  let done = 0;
+  let mins = 0;
+  if (week2) {
+    week2.workouts.forEach(w => {
+      if (isWorkoutDone(week2.week, w.day)) {
+        done++;
+        const data = State.trainings[week2.week]?.[w.day];
+        if (data && data.duration) {
+          mins += parseInt(data.duration);
+        } else {
+          mins += w.minutes;
+        }
+      }
+    });
+  }
+  document.getElementById('weekDone').textContent = `${done}/${total}`;
+  document.getElementById('weekKm').textContent = mins;
+
+  // RHR avg last 7 days
+  const dates = Object.keys(State.logs).sort().slice(-7);
+  const rhrs = dates.map(d => State.logs[d].rhr).filter(r => r);
+  const rhrAvg = rhrs.length ? Math.round(rhrs.reduce((a,b) => a+b, 0) / rhrs.length) : '—';
+  document.getElementById('rhrAvg').textContent = rhrAvg;
+}
+
+function isWorkoutDone(week, day) {
+  return State.trainings[week]?.[day]?.completed === true;
+}
+
+function markWorkout(week, day, done) {
+  if (!State.trainings[week]) State.trainings[week] = {};
+  if (!State.trainings[week][day]) State.trainings[week][day] = {};
+  State.trainings[week][day].completed = done;
+  saveState();
+  showToast(done ? '✓ Workout abgehakt' : 'Markierung entfernt');
+  renderAll();
+}
+
+// ============= RENDER: PLAN =============
+
+function renderPlan() {
+  const wrap = document.getElementById('planList');
+  let html = '';
+  let lastPhase = 0;
+  const cur = getCurrentWeek();
+
+  PLAN.forEach(w => {
+    if (w.phase !== lastPhase) {
+      if (lastPhase !== 0) html += '</div>'; // close prev card
+      const phaseName = w.phase === 1 ? 'Basis' : w.phase === 2 ? 'Aufbau' : 'HM-Spezifik';
+      const phaseRange = w.phase === 1 ? 'Woche 1–8' : w.phase === 2 ? 'Woche 9–14' : 'Woche 15–22';
+      const phaseMeta = w.phase === 1 ? 'Aerobe Basis · alles in Z2' : w.phase === 2 ? 'Quality am Samstag dazu' : '5:40er Pace stabilisieren';
+      html += `<div class="phase-card">
+        <div class="phase-head">
+          <div class="phase-num">${w.phase}</div>
+          <div class="phase-info-wrap">
+            <div class="l">${phaseRange}</div>
+            <div class="n">${phaseName}</div>
+            <div class="m">${phaseMeta}</div>
+          </div>
+        </div>`;
+      lastPhase = w.phase;
+    }
+    
+    const total = w.workouts.length;
+    let done = 0;
+    w.workouts.forEach(wo => { if (isWorkoutDone(w.week, wo.day)) done++; });
+    
+    const cls = [];
+    if (w.week === cur) cls.push('current');
+    if (w.deload) cls.push('deload');
+    if (w.test) cls.push('test');
+    if (w.race) cls.push('race');
+    
+    let suffix = '';
+    if (w.deload) suffix = ' ↓';
+    if (w.test) suffix = ' • Test ' + w.test;
+    if (w.race) suffix = ' ★';
+    
+    const summary = w.workouts.map(wo => `${wo.day}:${wo.minutes}`).join(' · ');
+    
+    html += `<div class="week-row ${cls.join(' ')}" onclick="openWeek(${w.week})">
+      <div class="week-num">W ${w.week}${suffix}</div>
+      <div class="week-info">
+        <strong>${w.workouts.length} Läufe</strong>
+        <div style="font-size: 11px; color: var(--ink-muted); font-family: 'JetBrains Mono', monospace;">${summary}</div>
+      </div>
+      <div class="week-progress ${done === total ? 'done' : ''}">${done}/${total}${done === total ? ' ✓' : ''}</div>
+    </div>`;
+  });
+  html += '</div>'; // close last
+  wrap.innerHTML = html;
+}
+
+function openWeek(weekNum) {
+  const week = PLAN.find(w => w.week === weekNum);
+  if (!week) return;
+  
+  const phaseName = week.phase === 1 ? 'Basis' : week.phase === 2 ? 'Aufbau' : 'HM-Spezifik';
+  const dayNames = { mo: 'Montag', di: 'Dienstag', mi: 'Mittwoch', do: 'Donnerstag', fr: 'Freitag', sa: 'Samstag', so: 'Sonntag' };
+  
+  let html = `
+    <div class="modal-handle"></div>
+    <div class="modal-title">Woche ${weekNum}${week.deload ? ' · Entlastung' : ''}${week.test ? ' · TEST ' + week.test : ''}${week.race ? ' · RACE' : ''}</div>
+    <div class="modal-sub">Phase ${week.phase} · ${phaseName}</div>
+  `;
+  
+  week.workouts.forEach(wo => {
+    const done = isWorkoutDone(weekNum, wo.day);
+    const data = State.trainings[weekNum]?.[wo.day];
+    html += `<div class="workout-row">
+      <div class="workout-day">${dayNames[wo.day].slice(0, 2)}</div>
+      <div>
+        <div class="workout-desc"><strong>${wo.label}</strong> · ${wo.minutes} Min</div>
+        <div class="workout-desc-meta">${wo.desc}</div>
+        ${data && data.distance ? `<div class="workout-desc-meta" style="color: var(--accent); margin-top: 4px;">Geloggt: ${data.distance} km · ${data.duration} min · ${data.avgHr || '—'} bpm</div>` : ''}
+      </div>
+      <div class="checkbox ${done ? 'checked' : ''}" onclick="markWorkout(${weekNum}, '${wo.day}', ${!done})">${done ? '✓' : ''}</div>
+    </div>`;
+  });
+  
+  if (week.test) {
+    html += `<div class="card featured" style="margin-top: 16px;">
+      <h2 class="h-card">Test ${week.test}</h2>
+      <p style="font-size: 13px; color: var(--ink-soft);">${week.test === 'A' ? '30-Min Steady State Test · Pace bei 142 bpm' : week.test === 'B' ? '10K Time Trial · liefert HM-Prognose' : '16 km bei HM-Pace · misst Konstanz und HF-Drift'}</p>
+    </div>`;
+  }
+  
+  html += `<div class="btn-row" style="margin-top: 16px;">
+    <button class="btn outline" onclick="closeModal()">Schließen</button>
+    ${weekNum !== getCurrentWeek() ? `<button class="btn" onclick="setCurrentWeek(${weekNum})">Als aktuelle Woche setzen</button>` : ''}
+  </div>`;
+  
+  showModal(html);
+}
+
+function setCurrentWeek(w) {
+  State.settings.currentWeek = w;
+  saveState();
+  closeModal();
+  renderAll();
+  showToast('Aktuelle Woche: ' + w);
+}
+
+// ============= RENDER: REZEPTE =============
+
+function renderRezepte() {
+  const wrap = document.getElementById('recipeList');
+  let html = '';
+  RECIPES.forEach(r => {
+    const qty = State.shopping.selected[r.id] || 0;
+    html += `<div class="recipe-row" onclick="openRecipe('${r.id}')">
+      <div>
+        <div class="recipe-name-row">${r.name}</div>
+        <div class="recipe-meta-row">${r.portions}P · ${r.time}min · ~${r.macros.kcal} kcal</div>
+      </div>
+      <div class="qty-control" onclick="event.stopPropagation()">
+        <button class="qty-btn" onclick="changeQty('${r.id}', -1)">−</button>
+        <span class="qty-val">${qty}</span>
+        <button class="qty-btn" onclick="changeQty('${r.id}', 1)">+</button>
+      </div>
+    </div>`;
+  });
+  wrap.innerHTML = html;
+  
+  // Update FAB
+  updateShoppingFab();
+}
+
+function changeQty(id, delta) {
+  const cur = State.shopping.selected[id] || 0;
+  const next = Math.max(0, cur + delta);
+  if (next === 0) {
+    delete State.shopping.selected[id];
+  } else {
+    State.shopping.selected[id] = next;
+  }
+  saveState();
+  renderRezepte();
+}
+
+function updateShoppingFab() {
+  const fab = document.getElementById('shoppingFab');
+  const totalQty = Object.values(State.shopping.selected).reduce((a,b) => a+b, 0);
+  if (totalQty > 0) {
+    fab.innerHTML = `<button class="fab" onclick="openShoppingList()">
+      <span>Einkaufsliste</span>
+      <span class="badge">${totalQty}</span>
+    </button>`;
+  } else {
+    fab.innerHTML = '';
+  }
+}
+
+function openRecipe(id) {
+  const r = RECIPES.find(x => x.id === id);
+  if (!r) return;
+  
+  let html = `
+    <div class="modal-handle"></div>
+    <div class="modal-title">${r.name}</div>
+    <div class="modal-sub">${r.portions} Portionen · ${r.time} Min · ${r.note}</div>
+    <h3 class="h-sub" style="margin-top: 8px;">Zutaten</h3>
+    <ul class="bullets" style="margin-bottom: 16px;">
+      ${r.ingredients.map(i => `<li><strong>${i.amount} ${i.unit}</strong> ${i.name}</li>`).join('')}
+    </ul>
+    <h3 class="h-sub">Makros pro Portion</h3>
+    <div class="stats-row">
+      <div class="stat-mini"><div class="v">${r.macros.kcal}</div><div class="l">kcal</div></div>
+      <div class="stat-mini"><div class="v">${r.macros.p}</div><div class="l">P (g)</div></div>
+      <div class="stat-mini"><div class="v">${r.macros.c}</div><div class="l">C (g)</div></div>
+    </div>
+  `;
+  
+  const qty = State.shopping.selected[id] || 0;
+  html += `<div class="btn-row" style="margin-top: 16px;">
+    <button class="btn outline" onclick="closeModal()">Schließen</button>
+    ${qty === 0 
+      ? `<button class="btn" onclick="changeQty('${id}', 1); closeModal()">+ Zur Liste</button>`
+      : `<button class="btn outline" onclick="changeQty('${id}', -1); closeModal()">− Aus Liste</button>`
+    }
+  </div>`;
+  
+  showModal(html);
+}
+
+function openShoppingList() {
+  // Aggregate ingredients
+  const agg = {};
+  Object.entries(State.shopping.selected).forEach(([id, qty]) => {
+    const r = RECIPES.find(x => x.id === id);
+    if (!r) return;
+    r.ingredients.forEach(ing => {
+      const key = `${ing.name}|${ing.unit}|${ing.cat}`;
+      if (!agg[key]) {
+        agg[key] = { name: ing.name, unit: ing.unit, cat: ing.cat, amount: 0 };
+      }
+      agg[key].amount += ing.amount * qty;
+    });
+  });
+  
+  // Group by category
+  const byCat = {};
+  Object.values(agg).forEach(item => {
+    if (!byCat[item.cat]) byCat[item.cat] = [];
+    byCat[item.cat].push(item);
+  });
+  
+  // Add custom items
+  if (State.shopping.custom.length > 0) {
+    byCat['Sonstiges'] = State.shopping.custom.map(name => ({ name, amount: 0, unit: '', cat: 'Sonstiges' }));
+  }
+  
+  const catOrder = ['Obst & Gemüse', 'Kühlware', 'Tiefkühl', 'Trockenwaren', 'Konserven', 'Vorrat', 'Sonstiges'];
+  const sortedCats = catOrder.filter(c => byCat[c]);
+  
+  let html = `<div class="modal-handle"></div>
+    <div class="modal-title">Einkaufsliste</div>
+    <div class="modal-sub">${Object.values(State.shopping.selected).reduce((a,b)=>a+b,0)} Rezepte ausgewählt</div>
+  `;
+  
+  sortedCats.forEach(cat => {
+    html += `<div class="shop-cat">${cat}</div>`;
+    byCat[cat].forEach((item, idx) => {
+      const ckKey = `${cat}-${item.name}`;
+      const checked = State.shopping.checked[ckKey];
+      const amt = item.amount > 0 ? `${item.amount} ${item.unit}` : '';
+      html += `<div class="shop-row">
+        <div class="checkbox ${checked ? 'checked' : ''}" onclick="toggleShop('${ckKey}')">${checked ? '✓' : ''}</div>
+        <div class="shop-name ${checked ? 'checked' : ''}">${item.name}</div>
+        <div class="shop-qty">${amt}</div>
+      </div>`;
+    });
+  });
+  
+  html += `<h3 class="h-sub" style="margin-top: 24px;">Eigene Items</h3>
+    <div class="field">
+      <input type="text" id="customItem" placeholder="z.B. Brot, Milch..." 
+        onkeydown="if(event.key==='Enter')addCustom()">
+    </div>
+    <button class="btn outline small" onclick="addCustom()">+ Hinzufügen</button>
+  `;
+  
+  html += `<div class="btn-row" style="margin-top: 24px;">
+    <button class="btn outline" onclick="closeModal()">Schließen</button>
+    <button class="btn" onclick="shareShoppingList()">In Notes / teilen</button>
+  </div>
+  <button class="btn outline full" onclick="clearShopping()" style="margin-top: 8px; border-color: var(--warn); color: var(--warn);">Liste leeren</button>`;
+  
+  showModal(html);
+}
+
+function toggleShop(key) {
+  State.shopping.checked[key] = !State.shopping.checked[key];
+  saveState();
+  openShoppingList(); // re-render
+}
+
+function addCustom() {
+  const inp = document.getElementById('customItem');
+  if (!inp || !inp.value.trim()) return;
+  State.shopping.custom.push(inp.value.trim());
+  saveState();
+  openShoppingList();
+}
+
+function clearShopping() {
+  if (!confirm('Einkaufsliste komplett leeren?')) return;
+  State.shopping = { selected: {}, custom: [], checked: {} };
+  saveState();
+  closeModal();
+  renderRezepte();
+  showToast('Liste geleert');
+}
+
+function shareShoppingList() {
+  // Build text version
+  const agg = {};
+  Object.entries(State.shopping.selected).forEach(([id, qty]) => {
+    const r = RECIPES.find(x => x.id === id);
+    if (!r) return;
+    r.ingredients.forEach(ing => {
+      const key = `${ing.name}|${ing.unit}|${ing.cat}`;
+      if (!agg[key]) {
+        agg[key] = { name: ing.name, unit: ing.unit, cat: ing.cat, amount: 0 };
+      }
+      agg[key].amount += ing.amount * qty;
+    });
+  });
+  
+  const byCat = {};
+  Object.values(agg).forEach(item => {
+    if (!byCat[item.cat]) byCat[item.cat] = [];
+    byCat[item.cat].push(item);
+  });
+  
+  if (State.shopping.custom.length > 0) {
+    byCat['Sonstiges'] = State.shopping.custom.map(name => ({ name, amount: 0, unit: '' }));
+  }
+  
+  const catOrder = ['Obst & Gemüse', 'Kühlware', 'Tiefkühl', 'Trockenwaren', 'Konserven', 'Vorrat', 'Sonstiges'];
+  let text = 'EINKAUFSLISTE\n\n';
+  catOrder.forEach(cat => {
+    if (!byCat[cat]) return;
+    text += cat.toUpperCase() + '\n';
+    byCat[cat].forEach(item => {
+      const amt = item.amount > 0 ? `${item.amount} ${item.unit} ` : '';
+      text += `☐ ${amt}${item.name}\n`;
+    });
+    text += '\n';
+  });
+  
+  // Add recipe summary
+  text += '\n--- AUSGEWÄHLTE REZEPTE ---\n';
+  Object.entries(State.shopping.selected).forEach(([id, qty]) => {
+    const r = RECIPES.find(x => x.id === id);
+    if (r) text += `${qty}× ${r.name} (${r.portions * qty} Portionen)\n`;
+  });
+
+  if (navigator.share) {
+    navigator.share({
+      title: 'Einkaufsliste',
+      text: text
+    }).catch(() => {
+      copyToClipboard(text, 'In Zwischenablage kopiert');
+    });
+  } else {
+    copyToClipboard(text, 'In Zwischenablage kopiert');
+  }
+}
+
+function copyToClipboard(text, msg) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => showToast(msg || 'Kopiert'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast(msg || 'Kopiert');
+  }
+}
+
+// ============= RENDER: LOG =============
+
+function renderLog() {
+  // 7-day stats
+  const dates = Object.keys(State.logs).sort().slice(-7);
+  const sleeps = dates.map(d => State.logs[d].sleep).filter(v => v);
+  const rhrs = dates.map(d => State.logs[d].rhr).filter(v => v);
+  
+  document.getElementById('stat7Sleep').textContent = sleeps.length 
+    ? (sleeps.reduce((a,b) => a+b, 0) / sleeps.length).toFixed(1) + ' h'
+    : '—';
+  document.getElementById('stat7Rhr').textContent = rhrs.length 
+    ? Math.round(rhrs.reduce((a,b) => a+b, 0) / rhrs.length)
+    : '—';
+  
+  // Total run minutes (last 7 days)
+  let totalMin = 0;
+  dates.forEach(d => {
+    const log = State.logs[d];
+    if (log.training?.duration) totalMin += parseInt(log.training.duration);
+  });
+  document.getElementById('stat7Min').textContent = totalMin;
+  
+  // Charts
+  renderChart('chartRhr', 'chartRhrLabels', 'rhr', 60, 70);
+  renderChart('chartMin', 'chartMinLabels', 'training.duration', 0, 90);
+  
+  // History
+  const allDates = Object.keys(State.logs).sort().reverse().slice(0, 30);
+  let histHtml = '';
+  if (allDates.length === 0) {
+    histHtml = '<div class="empty"><div class="ic">∿</div><div class="t">Noch keine Einträge</div><div class="s">Logge im Heute-Tab</div></div>';
+  }
+  allDates.forEach(d => {
+    const log = State.logs[d];
+    const dt = new Date(d);
+    const day = ['So','Mo','Di','Mi','Do','Fr','Sa'][dt.getDay()];
+    const dn = dt.getDate();
+    const mn = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][dt.getMonth()];
+    
+    let summary = [];
+    if (log.training?.duration) summary.push(`<strong>${log.training.duration} Min Lauf</strong>`);
+    if (log.sleep) summary.push(`${log.sleep}h Schlaf`);
+    if (log.rhr) summary.push(`RHR ${log.rhr}`);
+    if (log.energy) summary.push(`E ${log.energy}/10`);
+    if (log.strength) summary.push(log.strength);
+    
+    let tag = '';
+    if (log.training?.duration) tag = '<div class="history-tag">Lauf</div>';
+    else if (log.strength) tag = '<div class="history-tag">Kraft</div>';
+    
+    histHtml += `<div class="history-row" onclick="viewLogDay('${d}')">
+      <div class="history-date">${day}<strong>${dn}. ${mn}</strong></div>
+      <div class="history-summary">${summary.length ? summary.join(' · ') : '<em style="color: var(--ink-muted);">nur Notiz</em>'}</div>
+      ${tag}
+    </div>`;
+  });
+  document.getElementById('historyList').innerHTML = histHtml;
+}
+
+function renderChart(chartId, labelsId, field, min, max) {
+  const days = 14;
+  const today = new Date();
+  const data = [];
+  const labels = [];
+  
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const log = State.logs[key];
+    let val = null;
+    if (log) {
+      if (field.includes('.')) {
+        const parts = field.split('.');
+        val = log[parts[0]]?.[parts[1]];
+      } else {
+        val = log[field];
+      }
+    }
+    data.push(val ? parseFloat(val) : null);
+    if (i === days - 1 || i === 0 || i === Math.floor(days/2)) {
+      labels.push(d.getDate() + '.');
+    } else {
+      labels.push('');
+    }
+  }
+  
+  const validVals = data.filter(v => v !== null);
+  if (validVals.length === 0) {
+    document.getElementById(chartId).innerHTML = '<div style="color: var(--ink-muted); font-size: 12px; padding: 20px 0;">Noch keine Daten</div>';
+    document.getElementById(labelsId).innerHTML = '';
+    return;
+  }
+  
+  const localMax = Math.max(max, ...validVals);
+  const localMin = field.includes('rhr') ? Math.min(min, ...validVals) - 2 : 0;
+  const range = localMax - localMin || 1;
+  
+  let chartHtml = '';
+  data.forEach(v => {
+    const h = v !== null ? Math.max(2, ((v - localMin) / range) * 70) : 2;
+    chartHtml += `<div class="chart-bar ${v !== null ? 'has-data' : ''}" style="height: ${h}px;" data-val="${v !== null ? v : '—'}"></div>`;
+  });
+  document.getElementById(chartId).innerHTML = chartHtml;
+  
+  let labelHtml = labels.map(l => `<div class="chart-label">${l}</div>`).join('');
+  document.getElementById(labelsId).innerHTML = labelHtml;
+}
+
+function viewLogDay(date) {
+  const log = State.logs[date];
+  if (!log) return;
+  
+  const dt = new Date(date);
+  const dateStr = formatDate(date);
+  
+  let html = `<div class="modal-handle"></div>
+    <div class="modal-title">${dateStr}</div>
+    <div class="modal-sub">Eintrag bearbeiten</div>`;
+  
+  const fields = [
+    ['sleep', 'Schlaf', log.sleep ? log.sleep + ' h' : '—'],
+    ['rhr', 'Ruhepuls', log.rhr ? log.rhr + ' bpm' : '—'],
+    ['energy', 'Energie', log.energy ? log.energy + '/10' : '—'],
+    ['strength', 'Krafttraining', log.strength || '—'],
+    ['nutrition', 'Notiz', log.nutrition || '—']
+  ];
+  
+  if (log.training?.duration) {
+    html += `<div class="card featured">
+      <h2 class="h-card">Lauf</h2>
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">
+        ${log.training.distance ? log.training.distance + ' km · ' : ''}${log.training.duration} Min
+        ${log.training.avgHr ? ' · ⌀ ' + log.training.avgHr + ' bpm' : ''}
+        ${log.training.maxHr ? ' · max ' + log.training.maxHr : ''}
+      </div>
+      ${log.training.rpe ? '<div style="font-size: 13px; color: var(--ink-soft); margin-top: 6px;">RPE: ' + log.training.rpe + '/10</div>' : ''}
+      ${log.training.weather ? '<div style="font-size: 13px; color: var(--ink-soft);">Wetter: ' + log.training.weather + '</div>' : ''}
+      ${log.training.blackroll ? '<div style="font-size: 13px; color: var(--accent); margin-top: 6px;">○ Blackroll: ' + (log.training.blackroll === 'slot1' ? 'Slot 1' : log.training.blackroll === 'spezial' ? 'Slot 1 + Knie-Spezial' : 'Slot 1 + Ball') + '</div>' : ''}
+      ${log.training.notes ? '<div style="font-size: 13px; color: var(--ink-soft); margin-top: 6px;">' + log.training.notes + '</div>' : ''}
+      ${log.training.youtube ? '<div style="font-size: 12px; margin-top: 8px;"><a href="' + log.training.youtube + '" target="_blank" style="color: var(--accent);">YouTube-Link</a></div>' : ''}
+    </div>`;
+  }
+  
+  fields.forEach(([key, label, val]) => {
+    if (val !== '—') {
+      html += `<div class="quick-row" style="border: 1px solid var(--line); border-radius: 10px; margin-bottom: 6px;">
+        <span class="lbl">${label}</span>
+        <span class="val">${val}</span>
+      </div>`;
+    }
+  });
+  
+  html += `<div class="btn-row" style="margin-top: 20px;">
+    <button class="btn outline" onclick="closeModal()">Schließen</button>
+    <button class="btn warn" onclick="deleteLogDay('${date}')">Eintrag löschen</button>
+  </div>`;
+  
+  showModal(html);
+}
+
+function deleteLogDay(date) {
+  if (!confirm('Eintrag wirklich löschen?')) return;
+  delete State.logs[date];
+  saveState();
+  closeModal();
+  renderAll();
+}
+
+// ============= LOGGER MODAL =============
+
+function openLogger(type) {
+  const log = todayLog();
+  let html = '<div class="modal-handle"></div>';
+  
+  if (type === 'sleep') {
+    html += `<div class="modal-title">Schlaf letzte Nacht</div>
+      <div class="modal-sub">Stunden Schlaf</div>
+      <div class="field">
+        <label>Stunden</label>
+        <input type="number" id="inpSleep" step="0.5" min="0" max="14" value="${log.sleep || ''}" placeholder="6.5" autofocus>
+      </div>
+      <div class="btn-row">
+        <button class="btn outline" onclick="closeModal()">Abbrechen</button>
+        <button class="btn full" onclick="saveLog('sleep', parseFloat(document.getElementById('inpSleep').value))">Speichern</button>
+      </div>`;
+  } else if (type === 'rhr') {
+    html += `<div class="modal-title">Ruhepuls heute morgen</div>
+      <div class="modal-sub">Apple Watch oder selbst gemessen · in bpm</div>
+      <div class="field">
+        <label>Ruhepuls</label>
+        <input type="number" id="inpRhr" min="30" max="100" value="${log.rhr || ''}" placeholder="57" autofocus>
+      </div>
+      <div class="btn-row">
+        <button class="btn outline" onclick="closeModal()">Abbrechen</button>
+        <button class="btn full" onclick="saveLog('rhr', parseInt(document.getElementById('inpRhr').value))">Speichern</button>
+      </div>`;
+  } else if (type === 'energy') {
+    html += `<div class="modal-title">Energie heute</div>
+      <div class="modal-sub">1 = total k.o. · 10 = top fit</div>
+      <div class="field">
+        <label>Skala 1–10</label>
+        <div class="scale" id="energyScale">
+          ${[1,2,3,4,5,6,7,8,9,10].map(n => `<button class="scale-btn ${log.energy === n ? 'active' : ''}" onclick="selectScale('energyScale', ${n})">${n}</button>`).join('')}
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn outline" onclick="closeModal()">Abbrechen</button>
+        <button class="btn full" onclick="saveLog('energy', getSelectedScale('energyScale'))">Speichern</button>
+      </div>`;
+  } else if (type === 'strength') {
+    html += `<div class="modal-title">Krafttraining</div>
+      <div class="modal-sub">Was hast du gemacht?</div>
+      <div class="field">
+        <input type="text" id="inpStr" value="${log.strength || ''}" placeholder="z.B. Beine + Core, 30 Min" autofocus>
+      </div>
+      <div class="btn-row">
+        <button class="btn outline" onclick="closeModal()">Abbrechen</button>
+        <button class="btn full" onclick="saveLog('strength', document.getElementById('inpStr').value)">Speichern</button>
+      </div>`;
+  } else if (type === 'blackroll') {
+    html += `<div class="modal-title">Blackroll heute</div>
+      <div class="modal-sub">Welche Routine hast du gemacht?</div>
+      <div class="field">
+        <button class="btn full" onclick="saveLog('blackroll', 'Slot 1 · 5 Min nach Lauf')" style="margin-bottom: 8px;">Slot 1 · 5 Min nach Lauf</button>
+        <button class="btn full outline" onclick="saveLog('blackroll', 'Slot 1 + Knie-Spezial · 10 Min')" style="margin-bottom: 8px;">Slot 1 + Knie-Spezial · 10 Min</button>
+        <button class="btn full outline" onclick="saveLog('blackroll', 'Slot 2 · 10 Min Beine + Rücken')" style="margin-bottom: 8px;">Slot 2 · Mi/Fr · 10 Min</button>
+        <button class="btn full outline" onclick="saveLog('blackroll', 'Massageball Spot-Treatment')" style="margin-bottom: 8px;">Nur Massageball Spots</button>
+      </div>
+      <div style="font-size: 12px; color: var(--ink-muted); margin: 12px 0; padding: 10px; background: var(--bg-soft); border-radius: 8px;">
+        Routine vergessen? Mehr-Tab → Blackroll-Routine
+      </div>
+      <div class="btn-row">
+        <button class="btn outline full" onclick="closeModal()">Abbrechen</button>
+      </div>`;
+  } else if (type === 'nutrition') {
+    html += `<div class="modal-title">Ernährung / Notiz</div>
+      <div class="modal-sub">Was du gegessen hast, oder andere Notizen</div>
+      <div class="field">
+        <textarea id="inpNut" placeholder="z.B. Curry mittags, Quark abends, Müde aber gut">${log.nutrition || ''}</textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn outline" onclick="closeModal()">Abbrechen</button>
+        <button class="btn full" onclick="saveLog('nutrition', document.getElementById('inpNut').value)">Speichern</button>
+      </div>`;
+  }
+  
+  showModal(html);
+}
+
+function selectScale(id, n) {
+  const cont = document.getElementById(id);
+  cont.querySelectorAll('.scale-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i+1) === n);
+  });
+}
+
+function getSelectedScale(id) {
+  const active = document.querySelector(`#${id} .scale-btn.active`);
+  if (!active) return null;
+  return parseInt(active.textContent);
+}
+
+function saveLog(field, value) {
+  if (!value && value !== 0) {
+    showToast('Wert eingeben');
+    return;
+  }
+  const log = todayLog();
+  log[field] = value;
+  saveState();
+  closeModal();
+  renderAll();
+  showToast('Gespeichert');
+}
+
+// Workout logger
+function logWorkoutToday() {
+  const today = getDayOfWeek();
+  const week = PLAN.find(w => w.week === getCurrentWeek());
+  if (!week) return;
+  const workout = week.workouts.find(w => w.day === today);
+  if (!workout) return;
+  
+  const data = State.trainings[week.week]?.[today] || {};
+  const log = todayLog();
+  
+  let html = `<div class="modal-handle"></div>
+    <div class="modal-title">${workout.label}</div>
+    <div class="modal-sub">${workout.desc}</div>
+    
+    <div class="field-row">
+      <div class="field">
+        <label>Distanz (km)</label>
+        <input type="number" id="wDist" step="0.1" value="${data.distance || ''}" placeholder="5">
+      </div>
+      <div class="field">
+        <label>Dauer (Min)</label>
+        <input type="number" id="wDur" value="${data.duration || workout.minutes}" placeholder="${workout.minutes}">
+      </div>
+    </div>
+    
+    <div class="field-row">
+      <div class="field">
+        <label>Ø Puls</label>
+        <input type="number" id="wAvgHr" value="${data.avgHr || ''}" placeholder="142">
+      </div>
+      <div class="field">
+        <label>Max Puls</label>
+        <input type="number" id="wMaxHr" value="${data.maxHr || ''}" placeholder="160">
+      </div>
+    </div>
+    
+    <div class="field">
+      <label>RPE (Anstrengung 1–10)</label>
+      <div class="scale" id="wRpe">
+        ${[1,2,3,4,5,6,7,8,9,10].map(n => `<button class="scale-btn ${data.rpe === n ? 'active' : ''}" onclick="selectScale('wRpe', ${n})">${n}</button>`).join('')}
+      </div>
+    </div>
+    
+    <div class="field">
+      <label>Wetter</label>
+      <input type="text" id="wWeather" value="${data.weather || ''}" placeholder="z.B. 12°C bewölkt">
+    </div>
+    
+    <div class="field">
+      <label>YouTube-Link (optional)</label>
+      <input type="url" id="wYt" value="${data.youtube || ''}" placeholder="https://...">
+    </div>
+    
+    <div class="field">
+      <label>Blackroll nach Lauf</label>
+      <select id="wBlackroll" style="width: 100%; padding: 12px 14px; font-size: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--ink); font-family: inherit; -webkit-appearance: none; appearance: none;">
+        <option value="">Nichts gemacht</option>
+        <option value="slot1" ${data.blackroll === 'slot1' ? 'selected' : ''}>Slot 1 · 5 Min Standard</option>
+        <option value="spezial" ${data.blackroll === 'spezial' ? 'selected' : ''}>Slot 1 + Knie-Spezial · 10 Min</option>
+        <option value="ball" ${data.blackroll === 'ball' ? 'selected' : ''}>Slot 1 + Massageball Spots</option>
+      </select>
+    </div>
+    
+    <div class="field">
+      <label>Notizen</label>
+      <textarea id="wNotes" placeholder="Wie war's? Auffälligkeiten?">${data.notes || ''}</textarea>
+    </div>
+    
+    <div class="btn-row">
+      <button class="btn outline" onclick="closeModal()">Abbrechen</button>
+      <button class="btn full" onclick="saveWorkout(${week.week}, '${today}')">Speichern + Abhaken</button>
+    </div>`;
+  
+  showModal(html);
+}
+
+function saveWorkout(week, day) {
+  const data = {
+    distance: document.getElementById('wDist').value,
+    duration: document.getElementById('wDur').value,
+    avgHr: document.getElementById('wAvgHr').value,
+    maxHr: document.getElementById('wMaxHr').value,
+    rpe: getSelectedScale('wRpe'),
+    weather: document.getElementById('wWeather').value,
+    youtube: document.getElementById('wYt').value,
+    blackroll: document.getElementById('wBlackroll').value,
+    notes: document.getElementById('wNotes').value,
+    completed: true
+  };
+  
+  if (!State.trainings[week]) State.trainings[week] = {};
+  State.trainings[week][day] = data;
+  
+  // Also save to today's log
+  const log = todayLog();
+  log.training = data;
+  
+  // Auto-fill blackroll quick-log if it was logged via workout
+  if (data.blackroll && !log.blackroll) {
+    log.blackroll = data.blackroll === 'slot1' ? 'Slot 1 · 5 Min nach Lauf' :
+                    data.blackroll === 'spezial' ? 'Slot 1 + Knie-Spezial · 10 Min' :
+                    data.blackroll === 'ball' ? 'Slot 1 + Massageball Spots' : '';
+  }
+  
+  saveState();
+  closeModal();
+  renderAll();
+  showToast('✓ Lauf geloggt');
+}
+
+// ============= REFERENCE MODALS =============
+
+const REFS = {
+  zones: {
+    title: 'HF-Zonen',
+    body: `<table style="width: 100%; font-size: 14px;">
+      <tr style="border-bottom: 1px solid var(--line);"><td style="padding: 10px 0;"><strong>Z1</strong></td><td>&lt; 133</td><td>Aufwärmen, Hund</td></tr>
+      <tr style="background: var(--accent-bg); border-radius: 6px;"><td style="padding: 10px 8px;"><strong>Z2</strong></td><td>134–147</td><td><strong>Long Runs · 80%</strong></td></tr>
+      <tr style="border-bottom: 1px solid var(--line);"><td style="padding: 10px 0;"><strong>Z3</strong></td><td>148–160</td><td>Mittelhart</td></tr>
+      <tr style="border-bottom: 1px solid var(--line);"><td style="padding: 10px 0;"><strong>Z4</strong></td><td>161–173</td><td>Tempo · Schwelle</td></tr>
+      <tr><td style="padding: 10px 0;"><strong>Z5</strong></td><td>174 +</td><td>Intervalle</td></tr>
+    </table>`
+  },
+  warmup: {
+    title: 'Aufwärm-Protokoll · 8 Min',
+    body: `<ul class="bullets">
+      <li><strong>0–3 Min:</strong> Locker gehen → leicht traben (Puls auf ~110–120)</li>
+      <li><strong>3–7 Min:</strong> Beinpendel vorne/hinten + seitlich · Hüftkreisen · Walking Lunges m. Rotation · High Knees · Butt Kicks · je 30 Sek</li>
+      <li><strong>7–8 Min:</strong> Übergang in Lauf-Tempo, gemütlich starten</li>
+    </ul>
+    <p style="margin-top: 14px; padding: 12px; background: var(--accent-bg); border-radius: 8px; font-size: 13px;"><strong>Vor Quality:</strong> + 4×100m Steigerungen + 2 Min Pause</p>
+    <p style="margin-top: 10px; font-size: 12px; color: var(--ink-muted);">Statisches Dehnen vorher → weglassen (Leistungseinbuße belegt).</p>`
+  },
+  strength: {
+    title: 'Krafttraining · 25–30 Min',
+    body: `<h3 class="h-sub">Mo · Beine + Core</h3>
+    <ul class="bullets">
+      <li>Kniebeuge · 3 × 15</li>
+      <li>Ausfallschritte rückwärts · 3 × 10/Bein</li>
+      <li>Single-Leg Glute Bridge · 3 × 12/Bein</li>
+      <li>Wadenheben einbeinig · 3 × 15/Bein</li>
+      <li>Plank · 3 × 45 Sek</li>
+      <li>Bird Dog · 3 × 10/Seite</li>
+      <li>Side Plank · 2 × 30 Sek/Seite</li>
+    </ul>
+    <h3 class="h-sub">Mi · Oberkörper + Core</h3>
+    <ul class="bullets">
+      <li>Liegestütze · 3 × 10–15</li>
+      <li>Pike Push-Ups · 3 × 8</li>
+      <li>Superman · 3 × 12</li>
+      <li>Dead Bug · 3 × 10/Seite</li>
+      <li>Hollow Hold · 3 × 30 Sek</li>
+      <li>Russian Twist · 3 × 20</li>
+    </ul>`
+  },
+  supplements: {
+    title: 'Supplement-Stack · ~20 €/Mt',
+    body: `<table style="width: 100%; font-size: 13px;">
+      <tr style="border-bottom: 1px solid var(--line);"><td style="padding: 8px 0;"><strong>Vitamin D3</strong> Okt–März</td><td>1000–2000 IU/Tag</td></tr>
+      <tr style="border-bottom: 1px solid var(--line);"><td style="padding: 8px 0;"><strong>Vitamin B12</strong></td><td>1000 µg/Woche</td></tr>
+      <tr style="border-bottom: 1px solid var(--line);"><td style="padding: 8px 0;"><strong>Omega-3 Algenöl</strong></td><td>1g EPA/DHA/Tag</td></tr>
+      <tr><td style="padding: 8px 0;"><strong>Magnesium</strong></td><td>300 mg abends</td></tr>
+    </table>
+    <p style="margin-top: 14px; padding: 12px; background: var(--warn-bg); border-radius: 8px; font-size: 13px;"><strong>Eisen NUR nach Test</strong> · wenn Ferritin &lt; 30 ng/ml</p>
+    <p style="margin-top: 10px; font-size: 12px; color: var(--ink-muted);">Marken: DM Mivolis (Basics), NaturTreu / Sunday Natural (Omega-3).</p>`
+  },
+  blood: {
+    title: 'Bluttest-Sportlerwerte',
+    body: `<ul class="bullets">
+      <li><strong>Ferritin</strong> · Ziel 40–90 ng/ml (NICHT Bevölkerungs-Normalbereich!)</li>
+      <li><strong>25-OH-Vitamin D</strong> · Ziel &gt; 40 ng/ml</li>
+      <li><strong>Vitamin B12 (Holo-TC)</strong> · Ziel &gt; 50 pmol/l</li>
+      <li><strong>Hämoglobin · TSH · Großes Blutbild</strong></li>
+    </ul>
+    <h3 class="h-sub">Wo</h3>
+    <ul class="bullets">
+      <li>Hausarzt + IGeL · ~50–80 €</li>
+      <li>cerascreen Heimtest · ~80 €</li>
+    </ul>
+    <h3 class="h-sub">Wann</h3>
+    <ul class="bullets">
+      <li>Jetzt · Baseline</li>
+      <li>Spätwinter · Vit-D-Tief</li>
+      <li>Spätsommer · Eisenstatus</li>
+    </ul>`
+  },
+  blackroll: {
+    title: 'Blackroll · 3 Slots',
+    body: `<h3 class="h-sub">Slot 1 · Nach jedem Lauf · 5 Min</h3>
+    <table style="width: 100%; font-size: 13px;">
+      <tr style="border-bottom: 1px solid var(--line);"><td style="padding: 8px 0;"><strong>Waden</strong></td><td>60 Sek/Bein</td></tr>
+      <tr style="border-bottom: 1px solid var(--line);"><td style="padding: 8px 0;"><strong>Quadrizeps</strong></td><td>60 Sek/Bein, Bauchlage</td></tr>
+      <tr style="border-bottom: 1px solid var(--line);"><td style="padding: 8px 0;"><strong>Hamstrings</strong></td><td>45 Sek/Bein, sitzend</td></tr>
+      <tr style="border-bottom: 1px solid var(--line);"><td style="padding: 8px 0;"><strong>IT-Band</strong> (außen)</td><td>30 Sek/Bein · darf weh</td></tr>
+      <tr><td style="padding: 8px 0;"><strong>Po</strong> (Figur 4)</td><td>30 Sek/Seite</td></tr>
+    </table>
+    
+    <h3 class="h-sub">Slot 2 · Mi oder Fr · 10 Min</h3>
+    <p style="font-size: 13px; color: var(--ink-soft); margin-bottom: 8px;">Wie Slot 1 mit 90 Sek/Bereich, plus:</p>
+    <ul class="bullets">
+      <li>Oberer Rücken (Roller quer, Arme verschränkt) · 60 Sek</li>
+      <li>BWS mobilisieren (Roller quer, Arme über Kopf) · 60 Sek · NICHT in Lendenbereich!</li>
+    </ul>
+    
+    <h3 class="h-sub">Knie-Spezial · Sa/So · +5 Min</h3>
+    <ul class="bullets">
+      <li><strong>Quadrizeps</strong> alle 4 Stränge – außen, mittig, innen</li>
+      <li><strong>IT-Band</strong> gründlich · Hauptverdächtiger bei Läufer-Knie</li>
+      <li><strong>Vastus Medialis</strong> (innerer Quad direkt überm Knie) mit Ball · sanft</li>
+      <li><strong>Wadenmuskulatur tief</strong> mit Ball · Triggerpunkte suchen</li>
+    </ul>
+    
+    <h3 class="h-sub">Massageball · Spot-Treatment</h3>
+    <table style="width: 100%; font-size: 13px;">
+      <tr style="border-bottom: 1px solid var(--line);"><td style="padding: 8px 0;"><strong>Plantarfaszie</strong></td><td>60 Sek/Fuß · morgens</td></tr>
+      <tr style="border-bottom: 1px solid var(--line);"><td style="padding: 8px 0;"><strong>Po-Triggerpunkt</strong></td><td>60 Sek/Seite</td></tr>
+      <tr style="border-bottom: 1px solid var(--line);"><td style="padding: 8px 0;"><strong>Tibialis</strong> (Schienbein außen)</td><td>45 Sek/Bein · sanft</td></tr>
+      <tr><td style="padding: 8px 0;"><strong>Schulterblatt an Wand</strong></td><td>60 Sek/Seite</td></tr>
+    </table>
+    
+    <p style="margin-top: 14px; padding: 12px; background: var(--warn-bg); border-radius: 8px; font-size: 13px;"><strong>Nicht rollen:</strong> direkt auf Gelenken · Wirbelsäule (nur Muskeln daneben) · Innenseite Oberschenkel · bei akuten Verletzungen</p>
+    
+    <p style="margin-top: 10px; font-size: 12px; color: var(--ink-muted);">Bei schmerzhaften Punkten 20–30 Sek bleiben und atmen, bis der Schmerz nachlässt.</p>`
+  },
+  knee: {
+    title: 'Knie · sofort pausieren',
+    body: `<ul class="bullets">
+      <li>Schmerz hinter der Kniescheibe beim Bergablaufen</li>
+      <li>Knirschen mit Schmerz</li>
+      <li>Schmerz nach 10 Min Lauf nicht weg / wird schlimmer</li>
+    </ul>
+    <p style="margin-top: 14px; padding: 12px; background: var(--warn-bg); border-radius: 8px; font-size: 13px;"><strong>1 Woche Pause</strong> + Kraft + Spazieren. Nach 1 Woche nicht weg → <strong>Physio</strong>.</p>`
+  }
+};
+
+function showRef(key) {
+  const r = REFS[key];
+  if (!r) return;
+  let html = `<div class="modal-handle"></div>
+    <div class="modal-title">${r.title}</div>
+    <div style="margin-top: 12px;">${r.body}</div>
+    <div class="btn-row" style="margin-top: 20px;">
+      <button class="btn full" onclick="closeModal()">Schließen</button>
+    </div>`;
+  showModal(html);
+}
+
+// ============= SETTINGS =============
+
+function openSettings() {
+  let html = `<div class="modal-handle"></div>
+    <div class="modal-title">Einstellungen</div>
+    <div class="modal-sub">Persönliche Daten</div>
+    
+    <div class="field">
+      <label>Name</label>
+      <input type="text" id="setName" value="${State.settings.name || ''}">
+    </div>
+    
+    <div class="field">
+      <label>Aktuelle Trainingswoche</label>
+      <input type="number" id="setWeek" min="1" max="22" value="${State.settings.currentWeek}">
+    </div>
+    
+    <div class="btn-row">
+      <button class="btn outline" onclick="closeModal()">Abbrechen</button>
+      <button class="btn full" onclick="saveSettings()">Speichern</button>
+    </div>
+    
+    <h3 class="h-sub" style="margin-top: 24px;">Daten</h3>
+    <button class="btn outline full" onclick="resetData()" style="margin-top: 8px; border-color: var(--warn); color: var(--warn);">Alle Daten löschen</button>`;
+  showModal(html);
+}
+
+function saveSettings() {
+  State.settings.name = document.getElementById('setName').value || 'Mats';
+  State.settings.currentWeek = parseInt(document.getElementById('setWeek').value) || 1;
+  saveState();
+  closeModal();
+  renderAll();
+  showToast('Einstellungen gespeichert');
+}
+
+function resetData() {
+  if (!confirm('ALLE Daten löschen? Das kann nicht rückgängig gemacht werden.')) return;
+  if (!confirm('Wirklich? Alle Logs, Trainings, Einstellungen.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+function exportData() {
+  const data = JSON.stringify(State, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `lauftrainer-backup-${todayKey()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Backup heruntergeladen');
+}
+
+function importData() {
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'application/json';
+  inp.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (!confirm('Aktuelle Daten überschreiben?')) return;
+        State = { ...State, ...data };
+        saveState();
+        renderAll();
+        showToast('Daten importiert');
+      } catch (err) {
+        alert('Fehler beim Importieren: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+  inp.click();
+}
+
+// ============= MODAL =============
+
+function showModal(html) {
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function copyTemplate(id, btn) {
+  const el = document.getElementById(id);
+  const text = el.firstChild.textContent || el.innerText.replace('Kopieren', '').trim();
+  copyToClipboard(text, '✓ Kopiert');
+}
+
+// ============= TEMPLATE GENERATORS =============
+
+function generatePreRun() {
+  const log = todayLog();
+  const week = PLAN.find(w => w.week === getCurrentWeek());
+  const today = getDayOfWeek();
+  const workout = week?.workouts.find(w => w.day === today);
+  
+  const planText = workout 
+    ? `${workout.label} · ${workout.minutes} Min · ${workout.desc}` 
+    : 'Heute kein Lauf laut Plan';
+  
+  const text = `Pre-Run Check (Woche ${getCurrentWeek()})
+
+Schlaf: ${log.sleep || '__'} h
+Energie: ${log.energy || '__'}/10
+Ruhepuls heute: ${log.rhr || '__'} bpm
+Plan: ${planText}
+Sonst: __
+
+Soll ich loslaufen wie geplant?`;
+  
+  showTemplateModal('Pre-Run Check', text, 
+    'Mit deinen heutigen Daten gefüllt. Ergänze "Sonst" falls nötig (Knie zwickt, Stress, etc.) und sende es an Claude.');
+}
+
+function generateWeekReview() {
+  const wk = getCurrentWeek();
+  const week = PLAN.find(w => w.week === wk);
+  
+  // Calculate completed workouts
+  let plannedCount = week?.workouts.length || 0;
+  let doneCount = 0;
+  let totalMinPlanned = 0;
+  let totalMinActual = 0;
+  if (week) {
+    week.workouts.forEach(w => {
+      totalMinPlanned += w.minutes;
+      if (isWorkoutDone(wk, w.day)) {
+        doneCount++;
+        const data = State.trainings[wk]?.[w.day];
+        totalMinActual += parseInt(data?.duration || w.minutes);
+      }
+    });
+  }
+  
+  // Last 7 days stats
+  const dates = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    dates.push(d.toISOString().slice(0, 10));
+  }
+  const sleeps = dates.map(d => State.logs[d]?.sleep).filter(v => v);
+  const rhrs = dates.map(d => State.logs[d]?.rhr).filter(v => v);
+  const energies = dates.map(d => State.logs[d]?.energy).filter(v => v);
+  
+  const sleepAvg = sleeps.length ? (sleeps.reduce((a,b)=>a+b,0) / sleeps.length).toFixed(1) : '__';
+  const rhrAvg = rhrs.length ? Math.round(rhrs.reduce((a,b)=>a+b,0) / rhrs.length) : '__';
+  const energyAvg = energies.length ? (energies.reduce((a,b)=>a+b,0) / energies.length).toFixed(1) : '__';
+  
+  // Compare RHR to baseline
+  const rhrTrend = rhrs.length >= 3 
+    ? (rhrAvg < State.settings.rhrBaseline ? 'gut (unter Baseline)' : rhrAvg > State.settings.rhrBaseline + 3 ? 'erhöht – aufpassen' : 'normal')
+    : '__';
+  
+  const text = `WOCHENRÜCKBLICK · Woche ${wk}
+
+Trainings geplant vs. tatsächlich: ${doneCount}/${plannedCount} (${totalMinActual} von ${totalMinPlanned} Min)
+Schlaf-Ø: ${sleepAvg} h
+Ruhepuls morgens-Ø: ${rhrAvg} bpm (${rhrTrend})
+Energie-Ø: ${energyAvg}/10
+
+Stress-Level diese Woche: __/10
+Gefühl im Schnitt: __/10
+Termine kommende Woche: __
+Sonstiges (Schmerzen? Verletzungen? Auffälligkeiten?): __
+
+Wie soll die nächste Woche aussehen?`;
+  
+  showTemplateModal('Wochenrückblick W' + wk, text,
+    'Deine Daten sind eingefügt. Ergänze nur noch das Subjektive (Stress, Gefühl, Termine), kopier und sende an Claude.');
+}
+
+function showTemplateModal(title, text, hint) {
+  const html = `
+    <div class="modal-handle"></div>
+    <div class="modal-title">${title}</div>
+    <div class="modal-sub">${hint}</div>
+    <div class="field">
+      <textarea id="tmplOut" style="font-family: 'JetBrains Mono', monospace; font-size: 13px; min-height: 280px; line-height: 1.7;">${text}</textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn outline" onclick="closeModal()">Schließen</button>
+      <button class="btn full" onclick="copyAndOpenClaude()">Kopieren + Claude öffnen</button>
+    </div>
+    <button class="btn outline full" onclick="copyTemplateText()" style="margin-top: 8px;">Nur kopieren</button>
+  `;
+  showModal(html);
+}
+
+function copyTemplateText() {
+  const text = document.getElementById('tmplOut').value;
+  copyToClipboard(text, '✓ Kopiert · in Claude einfügen');
+}
+
+function copyAndOpenClaude() {
+  const text = document.getElementById('tmplOut').value;
+  copyToClipboard(text, '✓ Kopiert · Claude wird geöffnet');
+  setTimeout(() => {
+    window.open('https://claude.ai/new', '_blank');
+  }, 600);
+}
+
+// ============= ICS / CALENDAR EXPORT =============
+
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+function icsDate(d) {
+  return d.getUTCFullYear() + pad(d.getUTCMonth()+1) + pad(d.getUTCDate()) + 'T' + 
+    pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + '00Z';
+}
+
+function icsEvent(uid, start, end, title, description, alarmMinutes) {
+  let event = 'BEGIN:VEVENT\n';
+  event += `UID:${uid}@lauftrainer\n`;
+  event += `DTSTAMP:${icsDate(new Date())}\n`;
+  event += `DTSTART:${icsDate(start)}\n`;
+  event += `DTEND:${icsDate(end)}\n`;
+  event += `SUMMARY:${title}\n`;
+  event += `DESCRIPTION:${description.replace(/\n/g, '\\n')}\n`;
+  if (alarmMinutes !== undefined) {
+    event += 'BEGIN:VALARM\n';
+    event += 'ACTION:DISPLAY\n';
+    event += `TRIGGER:-PT${alarmMinutes}M\n`;
+    event += `DESCRIPTION:${title}\n`;
+    event += 'END:VALARM\n';
+  }
+  event += 'END:VEVENT\n';
+  return event;
+}
+
+function downloadICS(filename, content) {
+  const ics = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Mats Lauftrainer//DE\nCALSCALE:GREGORIAN\n' + content + 'END:VCALENDAR';
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportTrainingICS() {
+  // Ask user for start date
+  const startDate = prompt('Start-Datum für Phase 1 Woche 1 (Format YYYY-MM-DD)\nz.B. 2026-04-28 für Dienstag der nächsten Woche', 
+    State.settings.startDate || '');
+  if (!startDate) return;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
+    alert('Falsches Format. YYYY-MM-DD erwartet, z.B. 2026-04-28');
+    return;
+  }
+  
+  State.settings.startDate = startDate;
+  saveState();
+  
+  // Determine the Monday of week 1 (start could be any day, we treat that as week 1)
+  const start = new Date(startDate + 'T00:00:00');
+  const startDayOfWeek = start.getDay(); // 0=Sun, 1=Mon...
+  // Get the Monday of that week
+  const monday = new Date(start);
+  const offset = startDayOfWeek === 0 ? -6 : 1 - startDayOfWeek;
+  monday.setDate(monday.getDate() + offset);
+  
+  const dayMap = { mo: 1, di: 2, mi: 3, do: 4, fr: 5, sa: 6, so: 0 };
+  // Default times by day type
+  const defaultTimes = {
+    mo: [19, 30], // 19:30 Kraft
+    di: [6, 15],  // 6:15 Easy
+    mi: [19, 30], // 19:30 Kraft
+    do: [6, 15],  // 6:15 Easy
+    fr: null,
+    sa: [9, 0],   // 9:00 Quality (flexible)
+    so: [8, 30]   // 8:30 Long Run
+  };
+  
+  let content = '';
+  let count = 0;
+  
+  PLAN.forEach((week, wIdx) => {
+    week.workouts.forEach(workout => {
+      const dayOffset = (week.week - 1) * 7 + dayMap[workout.day] - 1;
+      // ! Tricky: if week starts Mon, then mo=0, di=1, mi=2, do=3, fr=4, sa=5, so=6
+      const correctOffset = (week.week - 1) * 7 + (workout.day === 'so' ? 6 : dayMap[workout.day] - 1);
+      
+      const eventDate = new Date(monday);
+      eventDate.setDate(eventDate.getDate() + correctOffset);
+      
+      const time = defaultTimes[workout.day];
+      if (!time) return; // skip days without time
+      
+      eventDate.setHours(time[0], time[1], 0, 0);
+      const endDate = new Date(eventDate);
+      endDate.setMinutes(endDate.getMinutes() + workout.minutes + 15); // +15 for warmup/cool
+      
+      const title = `🏃 ${workout.label} · W${week.week}`;
+      const desc = `${workout.desc}\n\nZone: ${workout.zone}\nDauer: ${workout.minutes} Min\nPhase ${week.phase}${week.deload ? ' (Entlastung)' : ''}${week.test ? ' (TEST ' + week.test + ')' : ''}${week.race ? ' (RACE!)' : ''}`;
+      
+      content += icsEvent(`w${week.week}-${workout.day}`, eventDate, endDate, title, desc, 30);
+      count++;
+    });
+  });
+  
+  downloadICS('lauftrainer-plan.ics', content);
+  showToast(`${count} Trainings exportiert`);
+}
+
+function exportRemindersICS() {
+  const startDate = prompt('Start-Datum für Reminders (YYYY-MM-DD)\nz.B. 2026-04-28', 
+    State.settings.startDate || new Date().toISOString().slice(0,10));
+  if (!startDate) return;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
+    alert('Falsches Format. YYYY-MM-DD erwartet');
+    return;
+  }
+  
+  const start = new Date(startDate + 'T00:00:00');
+  const startDay = start.getDay();
+  const monday = new Date(start);
+  monday.setDate(monday.getDate() + (startDay === 0 ? -6 : 1 - startDay));
+  
+  let content = '';
+  let count = 0;
+  
+  // Long-Run-Vorbereitung jeden Samstag 21:00 für 22 Wochen
+  for (let w = 0; w < 22; w++) {
+    const sat = new Date(monday);
+    sat.setDate(sat.getDate() + w * 7 + 5);
+    sat.setHours(21, 0, 0, 0);
+    const end = new Date(sat);
+    end.setMinutes(end.getMinutes() + 15);
+    content += icsEvent(`prep-${w}`, sat, end, 
+      '🥣 Long-Run-Frühstück vorbereiten', 
+      'Hafer + Banane + Erdnussmus für morgen früh bereit legen. Kaffee-Setup checken.', 
+      0);
+    count++;
+  }
+  
+  // Wochenrückblick jeden Sonntag 19:00 für 22 Wochen
+  for (let w = 0; w < 22; w++) {
+    const sun = new Date(monday);
+    sun.setDate(sun.getDate() + w * 7 + 6);
+    sun.setHours(19, 0, 0, 0);
+    const end = new Date(sun);
+    end.setMinutes(end.getMinutes() + 15);
+    content += icsEvent(`review-${w}`, sun, end, 
+      '📓 Wochenrückblick', 
+      `Woche ${w+1} reflektieren. App öffnen → Mehr → "Wochenrückblick generieren" → an Claude senden.`, 
+      0);
+    count++;
+  }
+  
+  // Bluttest 2× im Jahr
+  const winter = new Date(start.getFullYear(), 1, 15); // Mitte Februar
+  if (winter < start) winter.setFullYear(winter.getFullYear() + 1);
+  const winterEnd = new Date(winter);
+  winterEnd.setHours(winterEnd.getHours() + 1);
+  content += icsEvent('blood-winter', winter, winterEnd, 
+    '🩸 Bluttest · Spätwinter', 
+    'Ferritin · 25-OH-Vit-D · B12 · Großes Blutbild · TSH\nHausarzt anrufen, IGeL-Termin machen', 
+    1440); // 1 day before
+  count++;
+  
+  const summer = new Date(start.getFullYear(), 7, 15); // Mitte August
+  if (summer < start) summer.setFullYear(summer.getFullYear() + 1);
+  const summerEnd = new Date(summer);
+  summerEnd.setHours(summerEnd.getHours() + 1);
+  content += icsEvent('blood-summer', summer, summerEnd, 
+    '🩸 Bluttest · Spätsommer', 
+    'Ferritin nach Trainingsblock checken · auch D3 + B12 mitnehmen', 
+    1440);
+  count++;
+  
+  // Schuhe-Check alle 6 Wochen
+  for (let w = 5; w < 22; w += 6) {
+    const day = new Date(monday);
+    day.setDate(day.getDate() + w * 7);
+    day.setHours(10, 0, 0, 0);
+    const end = new Date(day);
+    end.setMinutes(end.getMinutes() + 15);
+    content += icsEvent(`shoes-${w}`, day, end, 
+      '👟 Schuhe checken', 
+      'Sohle anschauen, Mittelsohle drücken (sollte zurückfedern). Bei >600 km Gesamtkilometer: neue Schuhe.', 
+      0);
+    count++;
+  }
+  
+  downloadICS('lauftrainer-reminders.ics', content);
+  showToast(`${count} Reminders exportiert`);
+}
+
+// ============= NAV =============
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.screen;
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(target).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (target === 'log') renderLog();
+    if (target === 'rezepte') renderRezepte();
+    if (target === 'plan') renderPlan();
+  });
+});
+
+// ============= THEME =============
+
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', next === 'dark' ? '#0F1714' : '#2B4A3F');
+}
+
+(function() {
+  const saved = localStorage.getItem('theme');
+  if (saved) {
+    document.documentElement.setAttribute('data-theme', saved);
+  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+
+// ============= INIT =============
+
+function renderAll() {
+  renderHeute();
+  renderPlan();
+  renderRezepte();
+  renderLog();
+}
+
+loadState();
+renderAll();
+</script>
+</body>
+</html>
