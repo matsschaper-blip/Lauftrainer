@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { DailyLog, Settings } from '@/types';
+import type { DailyLog, Settings, WorkoutLog, WorkoutType, KmSplit, ZoneDistribution } from '@/types';
 
 interface ProfileRow {
   id: string;
@@ -141,6 +141,105 @@ export async function deleteDailyLog(userId: string, date: string): Promise<void
     .eq('date', date);
   if (error) {
     console.error('deleteDailyLog', error);
+    throw error;
+  }
+}
+
+// ============= Workout Logs =============
+
+interface WorkoutLogRow {
+  id: string;
+  user_id: string;
+  week: number;
+  day: string;
+  type: WorkoutType | null;
+  completed: boolean;
+  date: string | null;
+  distance: number | null;
+  duration: number | null;
+  avg_hr: number | null;
+  max_hr: number | null;
+  rpe: number | null;
+  weather: string | null;
+  youtube: string | null;
+  blackroll: string | null;
+  strava_id: string | null;
+  notes: string | null;
+  splits: KmSplit[] | null;
+  zones: ZoneDistribution | null;
+}
+
+function rowToWorkoutLog(row: WorkoutLogRow): WorkoutLog {
+  const log: WorkoutLog = { completed: row.completed };
+  if (row.type) log.type = row.type;
+  if (row.distance !== null) log.distance = row.distance;
+  if (row.duration !== null) log.duration = row.duration;
+  if (row.avg_hr !== null) log.avgHr = row.avg_hr;
+  if (row.max_hr !== null) log.maxHr = row.max_hr;
+  if (row.rpe !== null) log.rpe = row.rpe;
+  if (row.weather !== null) log.weather = row.weather;
+  if (row.youtube !== null) log.youtube = row.youtube;
+  if (row.blackroll !== null) log.blackroll = row.blackroll;
+  if (row.strava_id !== null) log.stravaId = row.strava_id;
+  if (row.notes !== null) log.notes = row.notes;
+  if (row.splits !== null) log.splits = row.splits;
+  if (row.zones !== null) log.zones = row.zones;
+  return log;
+}
+
+export async function fetchWorkoutLogs(
+  userId: string,
+): Promise<Record<number, Record<string, WorkoutLog>>> {
+  const { data, error } = await supabase
+    .from('workout_logs')
+    .select('*')
+    .eq('user_id', userId);
+  if (error) {
+    console.error('fetchWorkoutLogs', error);
+    return {};
+  }
+  const map: Record<number, Record<string, WorkoutLog>> = {};
+  for (const row of data as WorkoutLogRow[]) {
+    if (!map[row.week]) map[row.week] = {};
+    map[row.week][row.day] = rowToWorkoutLog(row);
+  }
+  return map;
+}
+
+const WORKOUT_FIELD_MAP: Array<[keyof WorkoutLog, string]> = [
+  ['type', 'type'],
+  ['completed', 'completed'],
+  ['distance', 'distance'],
+  ['duration', 'duration'],
+  ['avgHr', 'avg_hr'],
+  ['maxHr', 'max_hr'],
+  ['rpe', 'rpe'],
+  ['weather', 'weather'],
+  ['youtube', 'youtube'],
+  ['blackroll', 'blackroll'],
+  ['stravaId', 'strava_id'],
+  ['notes', 'notes'],
+  ['splits', 'splits'],
+  ['zones', 'zones'],
+];
+
+export async function upsertWorkoutLog(
+  userId: string,
+  week: number,
+  day: string,
+  patch: Partial<WorkoutLog>,
+): Promise<void> {
+  const payload: Record<string, unknown> = { user_id: userId, week, day };
+  for (const [tsKey, dbKey] of WORKOUT_FIELD_MAP) {
+    if (tsKey in patch) {
+      payload[dbKey] = patch[tsKey] ?? null;
+    }
+  }
+  const { error } = await supabase
+    .from('workout_logs')
+    .upsert(payload, { onConflict: 'user_id,week,day' });
+  if (error) {
+    console.error('upsertWorkoutLog', error);
     throw error;
   }
 }

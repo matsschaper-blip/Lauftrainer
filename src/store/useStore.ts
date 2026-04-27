@@ -13,7 +13,9 @@ import {
   deleteDailyLog as remoteDeleteLog,
   fetchDailyLogs,
   fetchSettings,
+  fetchWorkoutLogs,
   upsertDailyLog as remoteUpsertLog,
+  upsertWorkoutLog as remoteUpsertWorkout,
 } from '@/lib/sync';
 
 const initialSettings: Settings = {
@@ -72,14 +74,16 @@ export const useStore = create<Store>()(
 
       bootstrap: async (userId) => {
         const fallbackSettings = get().settings;
-        const [settings, logs] = await Promise.all([
+        const [settings, logs, trainings] = await Promise.all([
           fetchSettings(userId, fallbackSettings),
           fetchDailyLogs(userId),
+          fetchWorkoutLogs(userId),
         ]);
         set({
           userId,
           settings: settings ?? fallbackSettings,
           logs,
+          trainings,
           bootstrapped: true,
         });
       },
@@ -116,34 +120,45 @@ export const useStore = create<Store>()(
         }
       },
 
-      setWorkout: (week, day, patch) =>
+      setWorkout: (week, day, patch) => {
         set((s) => {
           const weekData = s.trainings[week] ?? {};
-          const existing: WorkoutLog =
-            weekData[day] ?? { completed: false };
+          const existing: WorkoutLog = weekData[day] ?? { completed: false };
           return {
             trainings: {
               ...s.trainings,
               [week]: { ...weekData, [day]: { ...existing, ...patch } },
             },
           };
-        }),
+        });
+        const userId = get().userId;
+        if (userId) {
+          remoteUpsertWorkout(userId, week, day, patch).catch((err) =>
+            console.error('Workout sync failed', err),
+          );
+        }
+      },
 
-      toggleWorkoutDone: (week, day) =>
-        set((s) => {
-          const weekData = s.trainings[week] ?? {};
-          const existing: WorkoutLog =
-            weekData[day] ?? { completed: false };
-          return {
-            trainings: {
-              ...s.trainings,
-              [week]: {
-                ...weekData,
-                [day]: { ...existing, completed: !existing.completed },
-              },
+      toggleWorkoutDone: (week, day) => {
+        const weekData = get().trainings[week] ?? {};
+        const existing: WorkoutLog = weekData[day] ?? { completed: false };
+        const next = !existing.completed;
+        set((s) => ({
+          trainings: {
+            ...s.trainings,
+            [week]: {
+              ...weekData,
+              [day]: { ...existing, completed: next },
             },
-          };
-        }),
+          },
+        }));
+        const userId = get().userId;
+        if (userId) {
+          remoteUpsertWorkout(userId, week, day, { completed: next }).catch((err) =>
+            console.error('Workout toggle sync failed', err),
+          );
+        }
+      },
 
       setRecipeQty: (recipeId, qty) =>
         set((s) => {

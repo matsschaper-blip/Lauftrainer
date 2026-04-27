@@ -12,6 +12,7 @@ import {
   tomorrowDayKey,
 } from '@/utils/date';
 import { QuickLogModal, type LoggerType } from '@/components/QuickLogModal';
+import { WorkoutDetailModal } from '@/components/WorkoutDetailModal';
 import type { PlannedWorkout } from '@/types';
 
 export function Heute() {
@@ -32,6 +33,7 @@ export function Heute() {
   const tomorrowWorkout = week?.workouts.find((w) => w.day === tomorrow);
 
   const [logger, setLogger] = useState<LoggerType | null>(null);
+  const [workoutDetail, setWorkoutDetail] = useState<PlannedWorkout | null>(null);
 
   // Wochen-Stats
   const weekStats = useMemo(() => {
@@ -69,7 +71,7 @@ export function Heute() {
       </p>
 
       {todayWorkout ? (
-        <WorkoutCard workout={todayWorkout} />
+        <WorkoutCard workout={todayWorkout} onClick={() => setWorkoutDetail(todayWorkout)} />
       ) : today === 'fr' ? (
         <RestCard
           title="Pausentag"
@@ -85,6 +87,13 @@ export function Heute() {
       {tomorrowWorkout && (
         <TomorrowCard workout={tomorrowWorkout} />
       )}
+
+      <WorkoutDetailModal
+        open={workoutDetail !== null}
+        onClose={() => setWorkoutDetail(null)}
+        week={currentWeek}
+        workout={workoutDetail}
+      />
 
       <h3 className="mb-[10px] mt-[24px] font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
         Heute loggen
@@ -145,10 +154,18 @@ export function Heute() {
   );
 }
 
-function WorkoutCard({ workout }: { workout: PlannedWorkout }) {
+function WorkoutCard({
+  workout,
+  onClick,
+}: {
+  workout: PlannedWorkout;
+  onClick: () => void;
+}) {
   return (
-    <div
-      className="relative mb-[18px] overflow-hidden rounded-2xl p-[22px] text-white"
+    <button
+      type="button"
+      onClick={onClick}
+      className="relative mb-[18px] block w-full overflow-hidden rounded-2xl p-[22px] text-left text-white transition active:scale-[0.99]"
       style={{
         background: 'linear-gradient(135deg, var(--accent) 0%, var(--accent-soft) 100%)',
       }}
@@ -158,7 +175,7 @@ function WorkoutCard({ workout }: { workout: PlannedWorkout }) {
         style={{ background: 'rgba(255,255,255,0.05)' }}
       />
       <p className="text-[11px] font-semibold uppercase tracking-[0.15em] opacity-80">
-        Heute · {workout.label}
+        Heute · {workout.label} ›
       </p>
       <p className="mt-1 font-display text-[24px] font-medium leading-tight tracking-tight">
         {workout.description.split('·')[0].trim()}
@@ -166,7 +183,7 @@ function WorkoutCard({ workout }: { workout: PlannedWorkout }) {
       <p className="mt-1 font-mono text-[12px] opacity-85">
         {workout.minutes} Min · Zone {workout.zone}
       </p>
-    </div>
+    </button>
   );
 }
 
