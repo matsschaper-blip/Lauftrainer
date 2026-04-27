@@ -11,8 +11,10 @@ export function Modal({ open, onClose, children }: Props) {
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.body.dataset.modal = 'open';
     return () => {
       document.body.style.overflow = prev;
+      delete document.body.dataset.modal;
     };
   }, [open]);
 

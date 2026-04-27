@@ -4,6 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide BottomNav while a modal is open so logger buttons aren't blocked */
+body[data-modal='open'] [data-bottom-nav] {
+  display: none;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

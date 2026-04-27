@@ -175,17 +175,12 @@ function TomorrowCard({ workout }: { workout: PlannedWorkout }) {
   const isHard = workout.type === 'tempo' || workout.type === 'test' || workout.type === 'race';
   return (
     <div className="rounded-card border border-line bg-bg-soft px-4 py-[14px]">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
-            Morgen · {dayName(workout.day)}
-          </p>
-          <p className="mt-1 font-display text-[16px] font-medium">
-            {workout.label} · {workout.minutes} Min
-          </p>
-        </div>
-        <ChevronRight size={16} className="text-ink-muted" />
-      </div>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+        Morgen · {dayName(workout.day)}
+      </p>
+      <p className="mt-1 font-display text-[16px] font-medium">
+        {workout.label} · {workout.minutes} Min
+      </p>
       {isLong && (
         <p className="mt-[10px] rounded-md bg-accent-bg px-[10px] py-[6px] text-[12px] text-accent">
           Heute Abend Frühstück vorbereiten + früh ins Bett

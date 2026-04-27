@@ -17,6 +17,7 @@ interface Props {
 export function BottomNav({ active, onChange }: Props) {
   return (
     <nav
+      data-bottom-nav
       className="fixed inset-x-0 bottom-0 z-40 flex justify-around border-t border-line bg-bg-card/95 backdrop-blur"
       style={{ paddingBottom: 'calc(8px + env(safe-area-inset-bottom))', paddingTop: '8px' }}
     >
