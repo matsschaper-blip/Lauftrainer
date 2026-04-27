@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Header } from '@/components/Header';
 import { BottomNav } from '@/components/BottomNav';
+import { AuthGate } from '@/components/AuthGate';
 import { Heute } from '@/screens/Heute';
 import { Plan } from '@/screens/Plan';
 import { Rezepte } from '@/screens/Rezepte';
@@ -35,12 +36,12 @@ export default function App() {
   const Screen = SCREENS[active];
 
   return (
-    <>
+    <AuthGate>
       <Header />
       <main className="relative z-[2] mx-auto max-w-[700px] px-[18px] py-[20px]">
         <Screen />
       </main>
       <BottomNav active={active} onChange={setActive} />
-    </>
+    </AuthGate>
   );
 }
