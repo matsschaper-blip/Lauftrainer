@@ -9,6 +9,12 @@ import type {
   DayKey,
 } from '@/types';
 import { todayISO } from '@/utils/date';
+import {
+  deleteDailyLog as remoteDeleteLog,
+  fetchDailyLogs,
+  fetchSettings,
+  upsertDailyLog as remoteUpsertLog,
+} from '@/lib/sync';
 
 const initialSettings: Settings = {
   name: 'Mats',
@@ -46,32 +52,69 @@ interface Actions {
   clearShopping: () => void;
   setTheme: (theme: Theme) => void;
   resetAll: () => void;
+  setUserId: (id: string | null) => void;
+  bootstrap: (userId: string) => Promise<void>;
 }
 
-export type Store = AppState & Actions;
+export type Store = AppState & Actions & {
+  userId: string | null;
+  bootstrapped: boolean;
+};
 
 export const useStore = create<Store>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
+      userId: null,
+      bootstrapped: false,
+
+      setUserId: (id) => set({ userId: id, bootstrapped: false }),
+
+      bootstrap: async (userId) => {
+        const fallbackSettings = get().settings;
+        const [settings, logs] = await Promise.all([
+          fetchSettings(userId, fallbackSettings),
+          fetchDailyLogs(userId),
+        ]);
+        set({
+          userId,
+          settings: settings ?? fallbackSettings,
+          logs,
+          bootstrapped: true,
+        });
+      },
 
       setSettings: (patch) =>
         set((s) => ({ settings: { ...s.settings, ...patch } })),
 
-      upsertLog: (date, patch) =>
+      upsertLog: (date, patch) => {
         set((s) => ({
           logs: {
             ...s.logs,
             [date]: { ...(s.logs[date] ?? { date }), ...patch },
           },
-        })),
+        }));
+        const userId = get().userId;
+        if (userId) {
+          remoteUpsertLog(userId, date, patch).catch((err) => {
+            console.error('Daily log sync failed', err);
+          });
+        }
+      },
 
-      deleteLog: (date) =>
+      deleteLog: (date) => {
         set((s) => {
           const next = { ...s.logs };
           delete next[date];
           return { logs: next };
-        }),
+        });
+        const userId = get().userId;
+        if (userId) {
+          remoteDeleteLog(userId, date).catch((err) => {
+            console.error('Daily log delete sync failed', err);
+          });
+        }
+      },
 
       setWorkout: (week, day, patch) =>
         set((s) => {

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useSession } from '@/hooks/useSession';
+import { useBootstrap } from '@/hooks/useBootstrap';
 import { LoginScreen } from './LoginScreen';
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
 
 export function AuthGate({ children }: Props) {
   const session = useSession();
+  useBootstrap(session);
 
   if (session === undefined) {
     return (

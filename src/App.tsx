@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Header } from '@/components/Header';
 import { BottomNav } from '@/components/BottomNav';
 import { AuthGate } from '@/components/AuthGate';
+import { ToastHost } from '@/components/Toast';
 import { Heute } from '@/screens/Heute';
 import { Plan } from '@/screens/Plan';
 import { Rezepte } from '@/screens/Rezepte';
@@ -42,6 +43,7 @@ export default function App() {
         <Screen />
       </main>
       <BottomNav active={active} onChange={setActive} />
+      <ToastHost />
     </AuthGate>
   );
 }
