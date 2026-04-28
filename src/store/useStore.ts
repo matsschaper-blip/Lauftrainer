@@ -13,9 +13,11 @@ import {
   deleteDailyLog as remoteDeleteLog,
   fetchDailyLogs,
   fetchSettings,
+  fetchShopping,
   fetchWorkoutLogs,
   upsertDailyLog as remoteUpsertLog,
   upsertProfile as remoteUpsertProfile,
+  upsertShopping as remoteUpsertShopping,
   upsertWorkoutLog as remoteUpsertWorkout,
 } from '@/lib/sync';
 
@@ -64,6 +66,14 @@ export type Store = AppState & Actions & {
   bootstrapped: boolean;
 };
 
+function syncShoppingNow(get: () => Store): void {
+  const { userId, shopping } = get();
+  if (!userId) return;
+  remoteUpsertShopping(userId, shopping).catch((err) =>
+    console.error('Shopping sync failed', err),
+  );
+}
+
 export const useStore = create<Store>()(
   persist(
     (set, get) => ({
@@ -75,16 +85,19 @@ export const useStore = create<Store>()(
 
       bootstrap: async (userId) => {
         const fallbackSettings = get().settings;
-        const [settings, logs, trainings] = await Promise.all([
+        const fallbackShopping = get().shopping;
+        const [settings, logs, trainings, shopping] = await Promise.all([
           fetchSettings(userId, fallbackSettings),
           fetchDailyLogs(userId),
           fetchWorkoutLogs(userId),
+          fetchShopping(userId),
         ]);
         set({
           userId,
           settings: settings ?? fallbackSettings,
           logs,
           trainings,
+          shopping: shopping ?? fallbackShopping,
           bootstrapped: true,
         });
       },
@@ -168,7 +181,7 @@ export const useStore = create<Store>()(
         }
       },
 
-      setRecipeQty: (recipeId, qty) =>
+      setRecipeQty: (recipeId, qty) => {
         set((s) => {
           const next = { ...s.shopping.selected };
           if (qty <= 0) {
@@ -177,25 +190,33 @@ export const useStore = create<Store>()(
             next[recipeId] = qty;
           }
           return { shopping: { ...s.shopping, selected: next } };
-        }),
+        });
+        syncShoppingNow(get);
+      },
 
-      toggleShoppingItem: (key) =>
+      toggleShoppingItem: (key) => {
         set((s) => ({
           shopping: {
             ...s.shopping,
             checked: { ...s.shopping.checked, [key]: !s.shopping.checked[key] },
           },
-        })),
+        }));
+        syncShoppingNow(get);
+      },
 
-      addCustomShopping: (item) =>
+      addCustomShopping: (item) => {
         set((s) => ({
           shopping: { ...s.shopping, custom: [...s.shopping.custom, item] },
-        })),
+        }));
+        syncShoppingNow(get);
+      },
 
-      clearShopping: () =>
+      clearShopping: () => {
         set(() => ({
           shopping: { selected: {}, custom: [], checked: {} },
-        })),
+        }));
+        syncShoppingNow(get);
+      },
 
       setTheme: (theme) => set({ theme }),
 

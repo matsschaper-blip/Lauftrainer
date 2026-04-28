@@ -1,5 +1,13 @@
 import { supabase } from './supabase';
-import type { DailyLog, Settings, WorkoutLog, WorkoutType, KmSplit, ZoneDistribution } from '@/types';
+import type {
+  DailyLog,
+  Settings,
+  ShoppingState,
+  WorkoutLog,
+  WorkoutType,
+  KmSplit,
+  ZoneDistribution,
+} from '@/types';
 
 interface ProfileRow {
   id: string;
@@ -271,6 +279,53 @@ export async function upsertWorkoutLog(
     .upsert(payload, { onConflict: 'user_id,week,day' });
   if (error) {
     console.error('upsertWorkoutLog', error);
+    throw error;
+  }
+}
+
+// ============= Shopping State =============
+
+interface ShoppingRow {
+  user_id: string;
+  selected: Record<string, number> | null;
+  custom: string[] | null;
+  checked: Record<string, boolean> | null;
+}
+
+export async function fetchShopping(userId: string): Promise<ShoppingState | null> {
+  const { data, error } = await supabase
+    .from('shopping_state')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) {
+    console.error('fetchShopping', error);
+    return null;
+  }
+  if (!data) return null;
+  const row = data as ShoppingRow;
+  return {
+    selected: row.selected ?? {},
+    custom: row.custom ?? [],
+    checked: row.checked ?? {},
+  };
+}
+
+export async function upsertShopping(
+  userId: string,
+  state: ShoppingState,
+): Promise<void> {
+  const { error } = await supabase.from('shopping_state').upsert(
+    {
+      user_id: userId,
+      selected: state.selected,
+      custom: state.custom,
+      checked: state.checked,
+    },
+    { onConflict: 'user_id' },
+  );
+  if (error) {
+    console.error('upsertShopping', error);
     throw error;
   }
 }
