@@ -114,8 +114,9 @@ export function WorkoutLogger({ open, onClose, week, day, planned }: Props) {
 
       showToast('Strava-Daten übernommen');
     } catch (e) {
-      console.error('import failed', e);
-      showToast('Strava-Import fehlgeschlagen');
+      console.error('Strava import failed', e);
+      const msg = e instanceof Error ? e.message : 'unbekannt';
+      showToast(`Strava-Import: ${msg}`);
     } finally {
       setImporting(false);
     }

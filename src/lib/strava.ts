@@ -85,7 +85,10 @@ export async function fetchActivities(after?: number): Promise<StravaActivity[]>
   const url = new URL(`${FN_BASE}/activities`);
   if (after) url.searchParams.set('after', String(after));
   const res = await fetch(url, { headers: await authHeaders() });
-  if (!res.ok) throw new Error(`activities failed: ${res.status}`);
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`activities ${res.status}: ${body.slice(0, 200)}`);
+  }
   return await res.json();
 }
 
@@ -93,7 +96,10 @@ export async function fetchStream(activityId: number): Promise<StravaStream> {
   const res = await fetch(`${FN_BASE}/stream?id=${activityId}`, {
     headers: await authHeaders(),
   });
-  if (!res.ok) throw new Error(`stream failed: ${res.status}`);
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`stream ${res.status}: ${body.slice(0, 200)}`);
+  }
   return await res.json();
 }
 
