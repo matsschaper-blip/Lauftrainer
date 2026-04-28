@@ -128,17 +128,21 @@ export interface Macros {
   fiber?: number;
 }
 
+export type RecipeCategory = 'breakfast' | 'smoothie' | 'snack' | 'during';
+
 export interface Recipe {
   id: string;
   name: string;
   portions: number;
   time: number;
-  category: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'during';
+  category: RecipeCategory;
   note?: string;
   ingredients: Ingredient[];
   instructions?: string;
   macros: Macros;
   tags: string[];
+  icon: string; // Emoji als Visual
+  imageUrl?: string; // optional, für später (Foto-Upload)
 }
 
 export interface ShoppingState {

@@ -1,12 +1,19 @@
 import { Modal } from './Modal';
 import { useStore } from '@/store/useStore';
-import type { Recipe } from '@/types';
+import type { Recipe, RecipeCategory } from '@/types';
 
 interface Props {
   open: boolean;
   onClose: () => void;
   recipe: Recipe | null;
 }
+
+const CATEGORY_BG: Record<RecipeCategory, string> = {
+  breakfast: 'bg-[#F5EDD9]',
+  smoothie: 'bg-[#E0EDE2]',
+  snack: 'bg-[#F5E5DD]',
+  during: 'bg-[#E8EDE8]',
+};
 
 export function RecipeDetailModal({ open, onClose, recipe }: Props) {
   const qty = useStore((s) => (recipe ? s.shopping.selected[recipe.id] ?? 0 : 0));
@@ -16,6 +23,11 @@ export function RecipeDetailModal({ open, onClose, recipe }: Props) {
 
   return (
     <Modal open={open} onClose={onClose}>
+      <div
+        className={`mb-4 flex items-center justify-center rounded-card py-[28px] text-[72px] ${CATEGORY_BG[recipe.category]}`}
+      >
+        {recipe.icon}
+      </div>
       <h2 className="font-display text-[22px] font-medium leading-tight tracking-tight">
         {recipe.name}
       </h2>
