@@ -1,17 +1,33 @@
 import { useMemo, useState } from 'react';
 import { useStore } from '@/store/useStore';
 import { Modal } from '@/components/Modal';
-import type { DailyLog } from '@/types';
+import type { DailyLog, WorkoutLog } from '@/types';
+
+interface DayRow {
+  date: string;
+  log?: DailyLog;
+  workout?: WorkoutLog;
+}
 
 export function Verlauf() {
   const logs = useStore((s) => s.logs);
   const trainings = useStore((s) => s.trainings);
 
-  const last7 = useMemo(() => buildLast7Stats(logs, trainings), [logs, trainings]);
-  const chart14 = useMemo(() => build14DayData(logs, trainings), [logs, trainings]);
-  const history = useMemo(() => buildHistory(logs), [logs]);
+  const workoutsByDate = useMemo(() => indexWorkoutsByDate(trainings), [trainings]);
+  const last7 = useMemo(
+    () => buildLast7Stats(logs, workoutsByDate),
+    [logs, workoutsByDate],
+  );
+  const chart14 = useMemo(
+    () => build14DayData(logs, workoutsByDate),
+    [logs, workoutsByDate],
+  );
+  const history = useMemo(
+    () => buildHistory(logs, workoutsByDate),
+    [logs, workoutsByDate],
+  );
 
-  const [openLog, setOpenLog] = useState<DailyLog | null>(null);
+  const [openRow, setOpenRow] = useState<DayRow | null>(null);
 
   return (
     <section>
@@ -64,17 +80,29 @@ export function Verlauf() {
         </div>
       ) : (
         <div className="space-y-[6px]">
-          {history.map(({ date, log }) => (
-            <HistoryRow key={date} date={date} log={log} onClick={() => setOpenLog(log)} />
+          {history.map((row) => (
+            <HistoryRow key={row.date} row={row} onClick={() => setOpenRow(row)} />
           ))}
         </div>
       )}
 
-      <Modal open={openLog !== null} onClose={() => setOpenLog(null)}>
-        {openLog && <LogDetail log={openLog} onClose={() => setOpenLog(null)} />}
+      <Modal open={openRow !== null} onClose={() => setOpenRow(null)}>
+        {openRow && <DayDetail row={openRow} onClose={() => setOpenRow(null)} />}
       </Modal>
     </section>
   );
+}
+
+function indexWorkoutsByDate(
+  trainings: Record<number, Record<string, WorkoutLog>>,
+): Record<string, WorkoutLog> {
+  const byDate: Record<string, WorkoutLog> = {};
+  for (const week of Object.values(trainings)) {
+    for (const w of Object.values(week)) {
+      if (w.date) byDate[w.date] = w;
+    }
+  }
+  return byDate;
 }
 
 interface ChartPoint {
@@ -86,7 +114,7 @@ interface ChartPoint {
 
 function build14DayData(
   logs: Record<string, DailyLog>,
-  trainings: Record<number, Record<string, { duration?: number }>>,
+  workoutsByDate: Record<string, WorkoutLog>,
 ): ChartPoint[] {
   const today = new Date();
   const data: ChartPoint[] = [];
@@ -96,23 +124,12 @@ function build14DayData(
     d.setHours(0, 0, 0, 0);
     const key = d.toISOString().slice(0, 10);
     const log = logs[key];
-    let minutes = 0;
-    if (log?.training?.duration) minutes = Number(log.training.duration);
-    if (minutes === 0) {
-      // fallback: scan trainings (workout sync writes there, not into log.training)
-      for (const wk of Object.values(trainings)) {
-        for (const t of Object.values(wk)) {
-          if (t.duration) {
-            // No date column in our trainings shape; skip.
-          }
-        }
-      }
-    }
+    const w = workoutsByDate[key];
     data.push({
       date: key,
       day: d.getDate(),
       rhr: log?.rhr ?? null,
-      minutes,
+      minutes: w?.duration ? Number(w.duration) : 0,
     });
   }
   return data;
@@ -120,7 +137,7 @@ function build14DayData(
 
 function buildLast7Stats(
   logs: Record<string, DailyLog>,
-  trainings: Record<number, Record<string, { duration?: number; date?: string }>>,
+  workoutsByDate: Record<string, WorkoutLog>,
 ) {
   const today = new Date();
   let sleepSum = 0;
@@ -128,12 +145,10 @@ function buildLast7Stats(
   let rhrSum = 0;
   let rhrCount = 0;
   let minutes = 0;
-  const dates: string[] = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(d.getDate() - i);
     const key = d.toISOString().slice(0, 10);
-    dates.push(key);
     const log = logs[key];
     if (log?.sleep) {
       sleepSum += log.sleep;
@@ -143,17 +158,8 @@ function buildLast7Stats(
       rhrSum += log.rhr;
       rhrCount += 1;
     }
-    if (log?.training?.duration) minutes += Number(log.training.duration);
-  }
-  // Workout-Logs ohne daily-log-mirror dazuzählen
-  for (const wk of Object.values(trainings)) {
-    for (const t of Object.values(wk)) {
-      if (t.duration && t.date && dates.includes(t.date)) {
-        // already counted via log.training? avoid double-count: only add if log.training missing
-        const log = logs[t.date];
-        if (!log?.training?.duration) minutes += Number(t.duration);
-      }
-    }
+    const w = workoutsByDate[key];
+    if (w?.duration) minutes += Number(w.duration);
   }
   return {
     sleep: sleepCount > 0 ? (sleepSum / sleepCount).toFixed(1) : null,
@@ -162,12 +168,20 @@ function buildLast7Stats(
   };
 }
 
-function buildHistory(logs: Record<string, DailyLog>) {
-  return Object.keys(logs)
+function buildHistory(
+  logs: Record<string, DailyLog>,
+  workoutsByDate: Record<string, WorkoutLog>,
+): DayRow[] {
+  const allDates = new Set<string>([...Object.keys(logs), ...Object.keys(workoutsByDate)]);
+  return Array.from(allDates)
     .sort()
     .reverse()
     .slice(0, 30)
-    .map((date) => ({ date, log: logs[date]! }));
+    .map((date) => ({
+      date,
+      log: logs[date],
+      workout: workoutsByDate[date],
+    }));
 }
 
 function BigStat({
@@ -261,29 +275,26 @@ function BarChart({
   );
 }
 
-function HistoryRow({
-  date,
-  log,
-  onClick,
-}: {
-  date: string;
-  log: DailyLog;
-  onClick: () => void;
-}) {
+function HistoryRow({ row, onClick }: { row: DayRow; onClick: () => void }) {
+  const { date, log, workout } = row;
   const dt = new Date(`${date}T00:00:00`);
   const dayShort = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'][dt.getDay()];
   const monthShort = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][dt.getMonth()];
 
   const parts: string[] = [];
-  if (log.training?.duration) parts.push(`${log.training.duration} Min Lauf`);
-  if (log.sleep) parts.push(`${log.sleep}h Schlaf`);
-  if (log.rhr) parts.push(`RHR ${log.rhr}`);
-  if (log.energy) parts.push(`E ${log.energy}/10`);
-  if (log.strength) parts.push(log.strength);
+  if (workout?.duration) {
+    const km = workout.distance ? `${workout.distance} km · ` : '';
+    parts.push(`${km}${workout.duration} Min`);
+  }
+  if (workout?.avgHr) parts.push(`ø ${workout.avgHr} bpm`);
+  if (log?.sleep) parts.push(`${log.sleep}h Schlaf`);
+  if (log?.rhr) parts.push(`RHR ${log.rhr}`);
+  if (log?.energy) parts.push(`E ${log.energy}/10`);
+  if (log?.strength) parts.push(log.strength);
 
   let tag = '';
-  if (log.training?.duration) tag = 'Lauf';
-  else if (log.strength) tag = 'Kraft';
+  if (workout?.duration) tag = 'Lauf';
+  else if (log?.strength) tag = 'Kraft';
 
   return (
     <button
@@ -309,15 +320,16 @@ function HistoryRow({
   );
 }
 
-function LogDetail({ log, onClose }: { log: DailyLog; onClose: () => void }) {
+function DayDetail({ row, onClose }: { row: DayRow; onClose: () => void }) {
   const deleteLog = useStore((s) => s.deleteLog);
-  const dt = new Date(`${log.date}T00:00:00`);
+  const { date, log, workout } = row;
+  const dt = new Date(`${date}T00:00:00`);
   const dayShort = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'][dt.getDay()];
   const monthShort = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][dt.getMonth()];
 
   function remove() {
-    if (!confirm('Eintrag wirklich löschen?')) return;
-    deleteLog(log.date);
+    if (!confirm('Daily-Log-Eintrag wirklich löschen? (Lauf bleibt erhalten)')) return;
+    if (log) deleteLog(date);
     onClose();
   }
 
@@ -326,36 +338,36 @@ function LogDetail({ log, onClose }: { log: DailyLog; onClose: () => void }) {
       <h2 className="font-display text-[22px] font-medium leading-tight tracking-tight">
         {dayShort}, {dt.getDate()}. {monthShort}
       </h2>
-      <p className="mb-4 mt-1 text-[13px] text-ink-muted">Eintrag bearbeiten</p>
+      <p className="mb-4 mt-1 text-[13px] text-ink-muted">Eintrag</p>
 
-      {log.training?.duration && (
+      {workout?.duration && (
         <div className="mb-3 rounded-card border border-accent bg-accent-bg p-4">
           <p className="font-display text-[16px] font-medium">Lauf</p>
           <p className="mt-1 font-mono text-[13px]">
-            {log.training.distance ? `${log.training.distance} km · ` : ''}
-            {log.training.duration} Min
-            {log.training.avgHr ? ` · ø ${log.training.avgHr} bpm` : ''}
-            {log.training.maxHr ? ` · max ${log.training.maxHr}` : ''}
+            {workout.distance ? `${workout.distance} km · ` : ''}
+            {workout.duration} Min
+            {workout.avgHr ? ` · ø ${workout.avgHr} bpm` : ''}
+            {workout.maxHr ? ` · max ${workout.maxHr}` : ''}
           </p>
-          {log.training.rpe && (
-            <p className="mt-1 text-[13px] text-ink-soft">RPE: {log.training.rpe}/10</p>
+          {workout.rpe && (
+            <p className="mt-1 text-[13px] text-ink-soft">RPE: {workout.rpe}/10</p>
           )}
-          {log.training.weather && (
-            <p className="text-[13px] text-ink-soft">Wetter: {log.training.weather}</p>
+          {workout.weather && (
+            <p className="text-[13px] text-ink-soft">Wetter: {workout.weather}</p>
           )}
-          {log.training.notes && (
-            <p className="mt-2 text-[13px] text-ink-soft">{log.training.notes}</p>
+          {workout.notes && (
+            <p className="mt-2 text-[13px] text-ink-soft">{workout.notes}</p>
           )}
         </div>
       )}
 
       <div className="space-y-2">
-        {log.sleep && <KeyVal label="Schlaf" value={`${log.sleep} h`} />}
-        {log.rhr && <KeyVal label="Ruhepuls" value={`${log.rhr} bpm`} />}
-        {log.energy && <KeyVal label="Energie" value={`${log.energy}/10`} />}
-        {log.strength && <KeyVal label="Krafttraining" value={log.strength} />}
-        {log.blackroll && <KeyVal label="Blackroll" value={log.blackroll} />}
-        {log.nutrition && <KeyVal label="Notiz" value={log.nutrition} />}
+        {log?.sleep && <KeyVal label="Schlaf" value={`${log.sleep} h`} />}
+        {log?.rhr && <KeyVal label="Ruhepuls" value={`${log.rhr} bpm`} />}
+        {log?.energy && <KeyVal label="Energie" value={`${log.energy}/10`} />}
+        {log?.strength && <KeyVal label="Krafttraining" value={log.strength} />}
+        {log?.blackroll && <KeyVal label="Blackroll" value={log.blackroll} />}
+        {log?.nutrition && <KeyVal label="Notiz" value={log.nutrition} />}
       </div>
 
       <div className="mt-6 flex gap-2">
@@ -366,13 +378,15 @@ function LogDetail({ log, onClose }: { log: DailyLog; onClose: () => void }) {
         >
           Schließen
         </button>
-        <button
-          type="button"
-          onClick={remove}
-          className="flex-1 rounded-full bg-warn px-[22px] py-3 text-[14px] font-semibold text-white transition active:scale-95"
-        >
-          Eintrag löschen
-        </button>
+        {log && (
+          <button
+            type="button"
+            onClick={remove}
+            className="flex-1 rounded-full bg-warn px-[22px] py-3 text-[14px] font-semibold text-white transition active:scale-95"
+          >
+            Daily-Log löschen
+          </button>
+        )}
       </div>
     </>
   );

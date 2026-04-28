@@ -211,6 +211,7 @@ interface WorkoutLogRow {
 function rowToWorkoutLog(row: WorkoutLogRow): WorkoutLog {
   const log: WorkoutLog = { completed: row.completed };
   if (row.type) log.type = row.type;
+  if (row.date !== null) log.date = row.date;
   if (row.distance !== null) log.distance = row.distance;
   if (row.duration !== null) log.duration = row.duration;
   if (row.avg_hr !== null) log.avgHr = row.avg_hr;
@@ -248,6 +249,7 @@ export async function fetchWorkoutLogs(
 const WORKOUT_FIELD_MAP: Array<[keyof WorkoutLog, string]> = [
   ['type', 'type'],
   ['completed', 'completed'],
+  ['date', 'date'],
   ['distance', 'distance'],
   ['duration', 'duration'],
   ['avgHr', 'avg_hr'],

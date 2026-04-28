@@ -5,6 +5,7 @@ import { showToast } from './Toast';
 import { useStore } from '@/store/useStore';
 import { useWeather } from '@/hooks/useWeather';
 import { formatWeatherLong } from '@/lib/weather';
+import { todayISO } from '@/utils/date';
 import type { DayKey, PlannedWorkout, WorkoutLog } from '@/types';
 
 interface Props {
@@ -57,6 +58,7 @@ export function WorkoutLogger({ open, onClose, week, day, planned }: Props) {
     const patch: Partial<WorkoutLog> = {
       completed: true,
       type: planned.type,
+      date: existing?.date ?? todayISO(),
     };
     if (distance) patch.distance = parseFloat(distance);
     if (duration) patch.duration = parseInt(duration, 10);

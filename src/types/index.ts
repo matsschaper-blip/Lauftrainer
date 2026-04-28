@@ -33,6 +33,7 @@ export interface DailyLog {
 export interface WorkoutLog {
   type?: WorkoutType;
   completed: boolean;
+  date?: string; // ISO yyyy-mm-dd, gesetzt beim Loggen
   distance?: number;
   duration?: number;
   avgHr?: number;
