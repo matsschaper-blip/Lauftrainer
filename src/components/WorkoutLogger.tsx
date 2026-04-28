@@ -27,6 +27,7 @@ interface Props {
   week: number;
   day: DayKey;
   planned: PlannedWorkout;
+  autoImport?: boolean;
 }
 
 const BLACKROLL_OPTIONS = [
@@ -36,7 +37,7 @@ const BLACKROLL_OPTIONS = [
   { value: 'ball', label: 'Slot 1 + Massageball Spots' },
 ];
 
-export function WorkoutLogger({ open, onClose, week, day, planned }: Props) {
+export function WorkoutLogger({ open, onClose, week, day, planned, autoImport }: Props) {
   const existing = useStore((s) => s.trainings[week]?.[day]);
   const setWorkout = useStore((s) => s.setWorkout);
   const stravaAthleteId = useStore((s) => s.stravaAthleteId);
@@ -74,7 +75,11 @@ export function WorkoutLogger({ open, onClose, week, day, planned }: Props) {
     setStravaId(existing?.stravaId);
     setZones(existing?.zones);
     setSplits(existing?.splits);
-  }, [open, existing, planned.minutes, liveWeather]);
+    if (autoImport && stravaAthleteId && !existing?.stravaId) {
+      void handleImportFromStrava();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, existing, planned.minutes, liveWeather, autoImport]);
 
   async function handleImportFromStrava() {
     setImporting(true);

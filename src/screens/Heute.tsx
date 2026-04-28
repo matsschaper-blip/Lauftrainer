@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { planWeek } from '@/data/plan';
@@ -13,8 +13,15 @@ import {
 } from '@/utils/date';
 import { QuickLogModal, type LoggerType } from '@/components/QuickLogModal';
 import { WorkoutDetailModal } from '@/components/WorkoutDetailModal';
+import { WorkoutLogger } from '@/components/WorkoutLogger';
 import { useWeather } from '@/hooks/useWeather';
 import { formatWeatherLong, weatherAdvice } from '@/lib/weather';
+import {
+  fetchActivities,
+  isRun,
+  todayStartEpochSeconds,
+  type StravaActivity,
+} from '@/lib/strava';
 import type { PlannedWorkout } from '@/types';
 
 export function Heute() {
@@ -36,7 +43,10 @@ export function Heute() {
 
   const [logger, setLogger] = useState<LoggerType | null>(null);
   const [workoutDetail, setWorkoutDetail] = useState<PlannedWorkout | null>(null);
+  const [stravaMatch, setStravaMatch] = useState<StravaActivity | null>(null);
+  const [autoLoggerOpen, setAutoLoggerOpen] = useState(false);
   const { weather } = useWeather();
+  const stravaAthleteId = useStore((s) => s.stravaAthleteId);
 
   // Wochen-Stats
   const weekStats = useMemo(() => {
@@ -53,6 +63,31 @@ export function Heute() {
     }
     return { done, total, minutes };
   }, [week, trainings, currentWeek]);
+
+  // Strava Auto-Match: heutige Activity finden, falls verbunden + Workout heute + noch nicht abgehakt
+  const todayWorkoutDone = !!trainings[currentWeek]?.[today]?.completed;
+  const todayWorkoutHasStrava = !!trainings[currentWeek]?.[today]?.stravaId;
+  useEffect(() => {
+    if (!stravaAthleteId || !todayWorkout || todayWorkoutDone || todayWorkoutHasStrava) {
+      setStravaMatch(null);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const acts = await fetchActivities(todayStartEpochSeconds());
+        const runs = acts.filter(isRun);
+        if (!cancelled && runs.length > 0) {
+          setStravaMatch(runs[0]);
+        }
+      } catch {
+        /* silent */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [stravaAthleteId, todayWorkout, todayWorkoutDone, todayWorkoutHasStrava, today]);
 
   // Ø RHR letzte 7 Tage
   const rhrAvg = useMemo(() => {
@@ -75,6 +110,17 @@ export function Heute() {
 
       {weather && (todayWorkout || tomorrowWorkout) && (
         <WeatherStrip weather={weather} />
+      )}
+
+      {stravaMatch && todayWorkout && (
+        <StravaMatchBanner
+          activity={stravaMatch}
+          onAccept={() => {
+            setAutoLoggerOpen(true);
+            setStravaMatch(null);
+          }}
+          onDismiss={() => setStravaMatch(null)}
+        />
       )}
 
       {todayWorkout ? (
@@ -101,6 +147,17 @@ export function Heute() {
         week={currentWeek}
         workout={workoutDetail}
       />
+
+      {todayWorkout && (
+        <WorkoutLogger
+          open={autoLoggerOpen}
+          onClose={() => setAutoLoggerOpen(false)}
+          week={currentWeek}
+          day={today}
+          planned={todayWorkout}
+          autoImport
+        />
+      )}
 
       <h3 className="mb-[10px] mt-[24px] font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
         Heute loggen
@@ -215,6 +272,48 @@ function TomorrowCard({ workout }: { workout: PlannedWorkout }) {
           Intensive Einheit · gut essen + ausreichend Schlaf
         </p>
       )}
+    </div>
+  );
+}
+
+function StravaMatchBanner({
+  activity,
+  onAccept,
+  onDismiss,
+}: {
+  activity: StravaActivity;
+  onAccept: () => void;
+  onDismiss: () => void;
+}) {
+  const km = (activity.distance / 1000).toFixed(2);
+  const min = Math.round(activity.moving_time / 60);
+  return (
+    <div className="mb-3 rounded-card border border-accent bg-accent-bg p-[14px]">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">
+        Strava-Lauf gefunden
+      </p>
+      <p className="mt-1 font-mono text-[13px] text-ink">
+        {km} km · {min} Min
+        {activity.average_heartrate
+          ? ` · ø ${Math.round(activity.average_heartrate)} bpm`
+          : ''}
+      </p>
+      <div className="mt-3 flex gap-2">
+        <button
+          type="button"
+          onClick={onAccept}
+          className="flex-1 rounded-full bg-accent py-[10px] text-[13px] font-semibold text-white transition active:scale-95"
+        >
+          Übernehmen
+        </button>
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="rounded-full border border-line px-[18px] py-[10px] text-[13px] font-semibold text-ink-soft transition active:scale-95"
+        >
+          Später
+        </button>
+      </div>
     </div>
   );
 }
