@@ -4,13 +4,17 @@ import { useStore } from '@/store/useStore';
 import { planWeek } from '@/data/plan';
 import {
   computeCurrentWeek,
+  dayIndex,
   dayName,
   formatDate,
   greeting,
+  strengthForDay,
   todayDayKey,
   todayISO,
   tomorrowDayKey,
 } from '@/utils/date';
+import { PLAN } from '@/data/plan';
+import type { DayKey } from '@/types';
 import { QuickLogModal, type LoggerType } from '@/components/QuickLogModal';
 import { WorkoutDetailModal } from '@/components/WorkoutDetailModal';
 import { WorkoutLogger } from '@/components/WorkoutLogger';
@@ -23,6 +27,50 @@ import {
   type StravaActivity,
 } from '@/lib/strava';
 import type { PlannedWorkout } from '@/types';
+
+interface NextRun {
+  workout: PlannedWorkout;
+  week: number;
+  daysAway: number; // 1 = morgen, 2 = übermorgen, 7 = in 1 Woche, etc.
+}
+
+function findNextRun(
+  currentWeek: number,
+  today: DayKey,
+): NextRun | null {
+  // Aktuelle Woche, alle Tage nach heute
+  const week = PLAN.find((w) => w.week === currentWeek);
+  if (week) {
+    const todayIdx = dayIndex(today);
+    const future = week.workouts
+      .map((w) => ({ ...w, idx: dayIndex(w.day) }))
+      .filter((w) => w.idx > todayIdx)
+      .sort((a, b) => a.idx - b.idx);
+    if (future.length > 0) {
+      const w = future[0];
+      return {
+        workout: w as PlannedWorkout,
+        week: currentWeek,
+        daysAway: w.idx - todayIdx,
+      };
+    }
+  }
+  // Nächste Woche
+  const next = PLAN.find((w) => w.week === currentWeek + 1);
+  if (next && next.workouts.length > 0) {
+    const first = [...next.workouts].sort(
+      (a, b) => dayIndex(a.day) - dayIndex(b.day),
+    )[0];
+    const offsetWithinWeek = dayIndex(first.day);
+    const daysToSunday = 6 - dayIndex(today);
+    return {
+      workout: first,
+      week: currentWeek + 1,
+      daysAway: daysToSunday + 1 + offsetWithinWeek,
+    };
+  }
+  return null;
+}
 
 export function Heute() {
   const settings = useStore((s) => s.settings);
@@ -40,6 +88,8 @@ export function Heute() {
 
   const todayWorkout = week?.workouts.find((w) => w.day === today);
   const tomorrowWorkout = week?.workouts.find((w) => w.day === tomorrow);
+  const todayStrength = strengthForDay(today);
+  const nextRun = useMemo(() => findNextRun(currentWeek, today), [currentWeek, today]);
 
   const [logger, setLogger] = useState<LoggerType | null>(null);
   const [workoutDetail, setWorkoutDetail] = useState<PlannedWorkout | null>(null);
@@ -130,16 +180,22 @@ export function Heute() {
           title="Pausentag"
           subtitle="Nur Hund-Spaziergang · echter Erholungstag"
         />
-      ) : (
+      ) : !todayStrength ? (
         <RestCard
           title="Kein Lauf heute"
-          subtitle="Kraft oder Erholung laut Plan"
+          subtitle="Erholungstag laut Plan"
         />
+      ) : null}
+
+      {todayStrength && (
+        <StrengthCard label={todayStrength} />
       )}
 
-      {tomorrowWorkout && (
-        <TomorrowCard workout={tomorrowWorkout} />
-      )}
+      {tomorrowWorkout ? (
+        <TomorrowCard workout={tomorrowWorkout} label="Morgen" />
+      ) : nextRun ? (
+        <NextRunCard nextRun={nextRun} />
+      ) : null}
 
       <WorkoutDetailModal
         open={workoutDetail !== null}
@@ -251,13 +307,13 @@ function WorkoutCard({
   );
 }
 
-function TomorrowCard({ workout }: { workout: PlannedWorkout }) {
+function TomorrowCard({ workout, label }: { workout: PlannedWorkout; label: string }) {
   const isLong = workout.type === 'long';
   const isHard = workout.type === 'tempo' || workout.type === 'test' || workout.type === 'race';
   return (
     <div className="rounded-card border border-line bg-bg-soft px-4 py-[14px]">
       <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
-        Morgen · {dayName(workout.day)}
+        {label} · {dayName(workout.day)}
       </p>
       <p className="mt-1 font-display text-[16px] font-medium">
         {workout.label} · {workout.minutes} Min
@@ -272,6 +328,42 @@ function TomorrowCard({ workout }: { workout: PlannedWorkout }) {
           Intensive Einheit · gut essen + ausreichend Schlaf
         </p>
       )}
+    </div>
+  );
+}
+
+function NextRunCard({ nextRun }: { nextRun: NextRun }) {
+  const inDays = nextRun.daysAway;
+  const label =
+    inDays === 1 ? 'Morgen' :
+    inDays === 2 ? 'Übermorgen' :
+    `In ${inDays} Tagen`;
+  return (
+    <div className="rounded-card border border-line bg-bg-soft px-4 py-[14px]">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+        Nächster Lauf · {label} · {dayName(nextRun.workout.day)}
+      </p>
+      <p className="mt-1 font-display text-[16px] font-medium">
+        {nextRun.workout.label} · {nextRun.workout.minutes} Min
+        {nextRun.week !== nextRun.week && ` · W ${nextRun.week}`}
+      </p>
+      <p className="mt-[2px] font-mono text-[11px] text-ink-muted">
+        Zone {nextRun.workout.zone}
+      </p>
+    </div>
+  );
+}
+
+function StrengthCard({ label }: { label: string }) {
+  return (
+    <div className="mb-[18px] rounded-card border border-highlight bg-highlight-bg px-[18px] py-[14px]">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-highlight">
+        Heute · Krafttraining
+      </p>
+      <p className="mt-1 font-display text-[18px] font-medium">{label}</p>
+      <p className="mt-[4px] text-[12px] text-ink-soft">
+        Abends · 25–30 Min · Übungen siehe Mehr → Krafttraining
+      </p>
     </div>
   );
 }

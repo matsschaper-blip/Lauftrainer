@@ -63,6 +63,26 @@ export function greeting(): string {
   return 'Guten Abend';
 }
 
+const STRENGTH_DAYS: Partial<Record<DayKey, string>> = {
+  mo: 'Beine + Core',
+  mi: 'Oberkörper + Core',
+};
+
+export function strengthForDay(day: DayKey): string | null {
+  return STRENGTH_DAYS[day] ?? null;
+}
+
+const DAY_ORDER: DayKey[] = ['mo', 'di', 'mi', 'do', 'fr', 'sa', 'so'];
+
+export function dayIndex(day: DayKey): number {
+  return DAY_ORDER.indexOf(day);
+}
+
+export function dayAfter(day: DayKey, offset: number): DayKey {
+  const idx = (dayIndex(day) + offset + 7) % 7;
+  return DAY_ORDER[idx];
+}
+
 const PLAN_TOTAL_WEEKS = 22;
 
 /**

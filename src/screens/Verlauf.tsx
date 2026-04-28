@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { Modal } from '@/components/Modal';
-import type { DailyLog, DayKey, WorkoutLog } from '@/types';
+import type { DailyLog, DayKey, KmSplit, WorkoutLog, ZoneDistribution } from '@/types';
 
 interface DayRow {
   date: string;
@@ -90,7 +91,11 @@ export function Verlauf() {
         </div>
       )}
 
-      <Modal open={openRow !== null} onClose={() => setOpenRow(null)}>
+      <Modal
+        open={openRow !== null}
+        onClose={() => setOpenRow(null)}
+        fullscreen
+      >
         {openRow && <DayDetail row={openRow} onClose={() => setOpenRow(null)} />}
       </Modal>
     </section>
@@ -343,8 +348,8 @@ function DayDetail({ row, onClose }: { row: DayRow; onClose: () => void }) {
   const deleteLog = useStore((s) => s.deleteLog);
   const { date, log, workout } = row;
   const dt = new Date(`${date}T00:00:00`);
-  const dayShort = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'][dt.getDay()];
-  const monthShort = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][dt.getMonth()];
+  const dayLong = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'][dt.getDay()];
+  const monthLong = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'][dt.getMonth()];
 
   function remove() {
     if (!confirm('Daily-Log-Eintrag wirklich löschen? (Lauf bleibt erhalten)')) return;
@@ -352,75 +357,259 @@ function DayDetail({ row, onClose }: { row: DayRow; onClose: () => void }) {
     onClose();
   }
 
-  return (
-    <>
-      <h2 className="font-display text-[22px] font-medium leading-tight tracking-tight">
-        {dayShort}, {dt.getDate()}. {monthShort}
-      </h2>
-      <p className="mb-4 mt-1 text-[13px] text-ink-muted">Eintrag</p>
+  const hasRun = !!workout?.duration;
+  const pace = hasRun && workout.distance && workout.duration
+    ? formatPace(workout.duration, workout.distance)
+    : null;
 
-      {workout?.duration && (
-        <div className="mb-3 rounded-card border border-accent bg-accent-bg p-4">
-          <p className="font-display text-[16px] font-medium">Lauf</p>
-          <p className="mt-1 font-mono text-[13px]">
-            {workout.distance ? `${workout.distance} km · ` : ''}
-            {workout.duration} Min
-            {workout.avgHr ? ` · ø ${workout.avgHr} bpm` : ''}
-            {workout.maxHr ? ` · max ${workout.maxHr}` : ''}
-          </p>
-          {workout.rpe && (
-            <p className="mt-1 text-[13px] text-ink-soft">RPE: {workout.rpe}/10</p>
+  return (
+    <div className="mx-auto max-w-[700px] px-[18px] pb-[40px] pt-3">
+      <button
+        type="button"
+        onClick={onClose}
+        className="mb-4 -ml-2 flex items-center gap-1 rounded-full px-3 py-2 text-[14px] font-medium text-ink-soft transition active:bg-bg-soft"
+      >
+        <ArrowLeft size={18} /> zurück
+      </button>
+
+      <p className="font-mono text-[12px] uppercase tracking-[0.08em] text-ink-muted">
+        {dayLong}
+      </p>
+      <h1 className="font-display text-[clamp(28px,7vw,38px)] font-normal leading-tight tracking-tight">
+        {dt.getDate()}. <em className="text-accent">{monthLong}</em>
+      </h1>
+
+      {hasRun && (
+        <>
+          <h3 className="mb-[10px] mt-[24px] font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+            Lauf
+          </h3>
+
+          <div className="mb-[14px] grid grid-cols-2 gap-[1px] overflow-hidden rounded-card border border-line bg-line">
+            <RunStat label="Distanz" value={workout.distance ? `${workout.distance}` : '—'} unit="km" />
+            <RunStat label="Dauer" value={`${workout.duration}`} unit="min" />
+            <RunStat label="Ø Pace" value={pace ?? '—'} unit="/km" />
+            <RunStat label="Ø HF" value={workout.avgHr ? `${workout.avgHr}` : '—'} unit="bpm" />
+            {workout.maxHr && (
+              <RunStat label="Max HF" value={`${workout.maxHr}`} unit="bpm" />
+            )}
+            {workout.rpe && (
+              <RunStat label="RPE" value={`${workout.rpe}`} unit="/10" />
+            )}
+          </div>
+
+          {workout.zones && totalZoneSeconds(workout.zones) > 0 && (
+            <>
+              <h3 className="mb-[10px] mt-[24px] font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+                HF-Zonen-Verteilung
+              </h3>
+              <ZoneBar zones={workout.zones} />
+              <ZoneTable zones={workout.zones} />
+            </>
           )}
-          {workout.weather && (
-            <p className="text-[13px] text-ink-soft">Wetter: {workout.weather}</p>
+
+          {workout.splits && workout.splits.length > 0 && (
+            <>
+              <h3 className="mb-[10px] mt-[24px] font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+                Splits
+              </h3>
+              <SplitsList splits={workout.splits} />
+            </>
           )}
-          {workout.zones && (
-            <p className="mt-1 font-mono text-[12px] text-ink-soft">
-              Z1 {fmtZone(workout.zones.z1)} · Z2 {fmtZone(workout.zones.z2)} · Z3{' '}
-              {fmtZone(workout.zones.z3)} · Z4 {fmtZone(workout.zones.z4)} · Z5{' '}
-              {fmtZone(workout.zones.z5)}
-            </p>
+
+          {(workout.weather || workout.notes || workout.stravaId) && (
+            <>
+              <h3 className="mb-[10px] mt-[24px] font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+                Details
+              </h3>
+              <div className="space-y-2">
+                {workout.weather && <KeyVal label="Wetter" value={workout.weather} />}
+                {workout.blackroll && <KeyVal label="Blackroll" value={blackrollLabel(workout.blackroll)} />}
+                {workout.notes && (
+                  <div className="rounded-card border border-line bg-bg-card px-[14px] py-[10px]">
+                    <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+                      Notiz
+                    </p>
+                    <p className="mt-1 text-[14px] text-ink-soft">{workout.notes}</p>
+                  </div>
+                )}
+                {workout.stravaId && (
+                  <p className="font-mono text-[11px] text-ink-muted">
+                    Strava #{workout.stravaId}
+                  </p>
+                )}
+              </div>
+            </>
           )}
-          {workout.notes && (
-            <p className="mt-2 text-[13px] text-ink-soft">{workout.notes}</p>
-          )}
-          {workout.stravaId && (
-            <p className="mt-1 text-[11px] text-ink-muted">
-              Strava-ID #{workout.stravaId}
-            </p>
-          )}
-        </div>
+        </>
       )}
 
-      <div className="space-y-2">
-        {log?.sleep && <KeyVal label="Schlaf" value={`${log.sleep} h`} />}
-        {log?.rhr && <KeyVal label="Ruhepuls" value={`${log.rhr} bpm`} />}
-        {log?.energy && <KeyVal label="Energie" value={`${log.energy}/10`} />}
-        {log?.strength && <KeyVal label="Krafttraining" value={log.strength} />}
-        {log?.blackroll && <KeyVal label="Blackroll" value={log.blackroll} />}
-        {log?.nutrition && <KeyVal label="Notiz" value={log.nutrition} />}
-      </div>
+      {log && (Object.keys(log).filter((k) => k !== 'date').length > 0) && (
+        <>
+          <h3 className="mb-[10px] mt-[24px] font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+            Daily Log
+          </h3>
+          <div className="space-y-2">
+            {log.sleep && <KeyVal label="Schlaf" value={`${log.sleep} h`} />}
+            {log.rhr && <KeyVal label="Ruhepuls" value={`${log.rhr} bpm`} />}
+            {log.energy && <KeyVal label="Energie" value={`${log.energy}/10`} />}
+            {log.strength && <KeyVal label="Krafttraining" value={log.strength} />}
+            {log.blackroll && <KeyVal label="Blackroll" value={log.blackroll} />}
+            {log.nutrition && <KeyVal label="Notiz" value={log.nutrition} />}
+          </div>
+        </>
+      )}
 
-      <div className="mt-6 flex gap-2">
+      {log && (
         <button
           type="button"
-          onClick={onClose}
-          className="rounded-full border border-line px-[22px] py-3 text-[14px] font-semibold text-ink-soft transition active:scale-95"
+          onClick={remove}
+          className="mt-[32px] w-full rounded-full border border-warn py-3 text-[13px] font-semibold text-warn transition active:scale-95"
         >
-          Schließen
+          Daily-Log löschen
         </button>
-        {log && (
-          <button
-            type="button"
-            onClick={remove}
-            className="flex-1 rounded-full bg-warn px-[22px] py-3 text-[14px] font-semibold text-white transition active:scale-95"
-          >
-            Daily-Log löschen
-          </button>
-        )}
-      </div>
-    </>
+      )}
+    </div>
   );
+}
+
+function RunStat({ value, unit, label }: { value: string; unit: string; label: string }) {
+  return (
+    <div className="bg-bg-card px-[14px] py-[14px]">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-muted">
+        {label}
+      </p>
+      <p className="mt-1 font-display text-[26px] font-medium leading-none text-ink">
+        {value}
+        <span className="ml-1 font-sans text-[12px] font-normal text-ink-muted">
+          {unit}
+        </span>
+      </p>
+    </div>
+  );
+}
+
+const ZONE_COLORS = [
+  '#A8C4B0', // Z1 hellgrün
+  '#7BA388', // Z2 mittelgrün — Mats' Master-Zone
+  '#D4A04A', // Z3 gelb-orange
+  '#C8552B', // Z4 orange
+  '#8B2A1A', // Z5 dunkelrot
+];
+
+function ZoneBar({ zones }: { zones: ZoneDistribution }) {
+  const total = totalZoneSeconds(zones);
+  if (total === 0) return null;
+  const segs = [zones.z1, zones.z2, zones.z3, zones.z4, zones.z5];
+  return (
+    <div className="mb-2 flex h-[28px] w-full overflow-hidden rounded-full border border-line">
+      {segs.map((sec, i) => {
+        const pct = (sec / total) * 100;
+        if (pct < 0.5) return null;
+        return (
+          <div
+            key={i}
+            style={{ width: `${pct}%`, background: ZONE_COLORS[i] }}
+            title={`Z${i + 1}: ${fmtZone(sec)}`}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function ZoneTable({ zones }: { zones: ZoneDistribution }) {
+  const total = totalZoneSeconds(zones);
+  const rows: Array<[string, number]> = [
+    ['Z1', zones.z1],
+    ['Z2', zones.z2],
+    ['Z3', zones.z3],
+    ['Z4', zones.z4],
+    ['Z5', zones.z5],
+  ];
+  return (
+    <div className="mt-2 grid grid-cols-5 gap-[1px] overflow-hidden rounded-card border border-line bg-line">
+      {rows.map(([label, sec], i) => {
+        const pct = total > 0 ? Math.round((sec / total) * 100) : 0;
+        return (
+          <div key={label} className="bg-bg-card px-[8px] py-[10px] text-center">
+            <div
+              className="mx-auto h-[3px] w-[20px] rounded"
+              style={{ background: ZONE_COLORS[i] }}
+            />
+            <p className="mt-1 font-mono text-[11px] font-semibold">{label}</p>
+            <p className="mt-[2px] font-mono text-[12px] text-ink">{fmtZone(sec)}</p>
+            <p className="font-mono text-[10px] text-ink-muted">{pct}%</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function SplitsList({ splits }: { splits: KmSplit[] }) {
+  // Pace range für relative Bar-Visualisierung
+  const paces = splits.map(splitPaceSeconds).filter((p): p is number => p !== null);
+  const minPace = paces.length > 0 ? Math.min(...paces) : 0;
+  const maxPace = paces.length > 0 ? Math.max(...paces) : 1;
+  const range = maxPace - minPace || 1;
+
+  return (
+    <div className="space-y-[3px]">
+      {splits.map((s) => {
+        const ps = splitPaceSeconds(s);
+        const norm = ps !== null ? (ps - minPace) / range : 0;
+        return (
+          <div
+            key={s.km}
+            className="grid grid-cols-[36px_1fr_60px_60px] items-center gap-[10px] rounded-md border border-line bg-bg-card px-[12px] py-[8px]"
+          >
+            <span className="font-mono text-[12px] font-semibold text-ink-muted">
+              km {s.km}
+            </span>
+            <div className="relative h-[6px] overflow-hidden rounded-full bg-bg-soft">
+              <div
+                className="h-full rounded-full bg-accent"
+                style={{ width: `${(1 - norm) * 80 + 20}%` }}
+              />
+            </div>
+            <span className="font-mono text-[13px]">{s.pace ?? '—'}/km</span>
+            <span className="font-mono text-[12px] text-ink-soft">
+              {s.hr ? `${s.hr} bpm` : '—'}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function splitPaceSeconds(s: KmSplit): number | null {
+  if (!s.pace || !s.pace.includes(':')) return null;
+  const [m, sec] = s.pace.split(':').map((x) => parseInt(x, 10));
+  if (Number.isNaN(m) || Number.isNaN(sec)) return null;
+  return m * 60 + sec;
+}
+
+function totalZoneSeconds(z: ZoneDistribution): number {
+  return z.z1 + z.z2 + z.z3 + z.z4 + z.z5;
+}
+
+function formatPace(durationMin: number, distanceKm: number): string {
+  const totalSeconds = durationMin * 60;
+  const sPerKm = totalSeconds / distanceKm;
+  const m = Math.floor(sPerKm / 60);
+  const s = Math.round(sPerKm % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function blackrollLabel(value: string): string {
+  switch (value) {
+    case 'slot1': return 'Slot 1 · 5 Min';
+    case 'spezial': return 'Slot 1 + Knie-Spezial';
+    case 'ball': return 'Slot 1 + Massageball';
+    default: return value;
+  }
 }
 
 function fmtZone(seconds: number): string {

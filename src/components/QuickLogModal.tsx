@@ -85,7 +85,7 @@ export function QuickLogModal({ type, onClose }: Props) {
       {type === 'rhr' && (
         <Form
           title="Ruhepuls heute morgen"
-          subtitle="Apple Watch oder selbst gemessen · in bpm"
+          subtitle="In bpm. Direkt nach dem Aufwachen, BEVOR du aufstehst — der Wert sagt am ehesten, wie erholt du bist."
           onCancel={onClose}
           onSubmit={() => {
             const n = parseInt(rhr, 10);
@@ -105,6 +105,21 @@ export function QuickLogModal({ type, onClose }: Props) {
               className={inputCls}
             />
           </Field>
+          <div className="rounded-card bg-bg-soft px-[14px] py-[12px] text-[12px] leading-[1.5] text-ink-soft">
+            <p className="mb-1 font-semibold text-ink">Wo finde ich den Wert?</p>
+            <p>
+              <strong>Apple Health-App</strong> → Durchsuchen → Herz → Ruhepuls.
+              Dort steht der Tageswert (Apple Watch misst automatisch).
+            </p>
+            <p className="mt-2">
+              <strong>Oder selbst messen:</strong> Im Bett liegend, Zeigefinger an
+              Halsschlagader oder Handgelenk → 60 Sekunden zählen → Wert eintragen.
+            </p>
+            <p className="mt-2">
+              Werte 5+ über deinem Schnitt = übermüdet, krank oder gestresst →
+              an dem Tag eher Easy oder Pause statt Quality.
+            </p>
+          </div>
         </Form>
       )}
 

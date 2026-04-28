@@ -4,9 +4,10 @@ interface Props {
   open: boolean;
   onClose: () => void;
   children: ReactNode;
+  fullscreen?: boolean;
 }
 
-export function Modal({ open, onClose, children }: Props) {
+export function Modal({ open, onClose, children, fullscreen }: Props) {
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -19,6 +20,25 @@ export function Modal({ open, onClose, children }: Props) {
   }, [open]);
 
   if (!open) return null;
+
+  if (fullscreen) {
+    return (
+      <div
+        className="fixed inset-0 z-[200] flex flex-col bg-bg"
+        style={{ animation: 'fadeIn 0.2s ease' }}
+      >
+        <div
+          className="flex-1 overflow-y-auto"
+          style={{
+            paddingTop: 'env(safe-area-inset-top)',
+            paddingBottom: 'env(safe-area-inset-bottom)',
+          }}
+        >
+          {children}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
