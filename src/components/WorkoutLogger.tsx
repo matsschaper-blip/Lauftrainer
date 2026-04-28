@@ -3,6 +3,8 @@ import { Modal } from './Modal';
 import { ScaleInput } from './ScaleInput';
 import { showToast } from './Toast';
 import { useStore } from '@/store/useStore';
+import { useWeather } from '@/hooks/useWeather';
+import { formatWeatherLong } from '@/lib/weather';
 import type { DayKey, PlannedWorkout, WorkoutLog } from '@/types';
 
 interface Props {
@@ -23,6 +25,7 @@ const BLACKROLL_OPTIONS = [
 export function WorkoutLogger({ open, onClose, week, day, planned }: Props) {
   const existing = useStore((s) => s.trainings[week]?.[day]);
   const setWorkout = useStore((s) => s.setWorkout);
+  const { weather: liveWeather } = useWeather();
 
   const [distance, setDistance] = useState('');
   const [duration, setDuration] = useState('');
@@ -43,11 +46,12 @@ export function WorkoutLogger({ open, onClose, week, day, planned }: Props) {
     setAvgHr(existing?.avgHr ? String(existing.avgHr) : '');
     setMaxHr(existing?.maxHr ? String(existing.maxHr) : '');
     setRpe(existing?.rpe);
-    setWeather(existing?.weather ?? '');
+    const fallbackWeather = liveWeather ? formatWeatherLong(liveWeather) : '';
+    setWeather(existing?.weather ?? fallbackWeather);
     setYoutube(existing?.youtube ?? '');
     setBlackroll(existing?.blackroll ?? '');
     setNotes(existing?.notes ?? '');
-  }, [open, existing, planned.minutes]);
+  }, [open, existing, planned.minutes, liveWeather]);
 
   function save() {
     const patch: Partial<WorkoutLog> = {

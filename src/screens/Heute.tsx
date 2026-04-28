@@ -13,6 +13,8 @@ import {
 } from '@/utils/date';
 import { QuickLogModal, type LoggerType } from '@/components/QuickLogModal';
 import { WorkoutDetailModal } from '@/components/WorkoutDetailModal';
+import { useWeather } from '@/hooks/useWeather';
+import { formatWeatherLong, weatherAdvice } from '@/lib/weather';
 import type { PlannedWorkout } from '@/types';
 
 export function Heute() {
@@ -34,6 +36,7 @@ export function Heute() {
 
   const [logger, setLogger] = useState<LoggerType | null>(null);
   const [workoutDetail, setWorkoutDetail] = useState<PlannedWorkout | null>(null);
+  const { weather } = useWeather();
 
   // Wochen-Stats
   const weekStats = useMemo(() => {
@@ -69,6 +72,10 @@ export function Heute() {
       <p className="mb-[22px] mt-1 font-mono text-[12px] uppercase tracking-[0.08em] text-ink-muted">
         {formatDate(todayISO())} · Woche {currentWeek}
       </p>
+
+      {weather && (todayWorkout || tomorrowWorkout) && (
+        <WeatherStrip weather={weather} />
+      )}
 
       {todayWorkout ? (
         <WorkoutCard workout={todayWorkout} onClick={() => setWorkoutDetail(todayWorkout)} />
@@ -207,6 +214,20 @@ function TomorrowCard({ workout }: { workout: PlannedWorkout }) {
         <p className="mt-[10px] rounded-md bg-accent-bg px-[10px] py-[6px] text-[12px] text-accent">
           Intensive Einheit · gut essen + ausreichend Schlaf
         </p>
+      )}
+    </div>
+  );
+}
+
+function WeatherStrip({ weather }: { weather: NonNullable<ReturnType<typeof useWeather>['weather']> }) {
+  const advice = weatherAdvice(weather);
+  return (
+    <div className="mb-3 rounded-card border border-line bg-bg-soft px-[14px] py-[10px]">
+      <p className="font-mono text-[12px] text-ink-soft">
+        {formatWeatherLong(weather)}
+      </p>
+      {advice && (
+        <p className="mt-[6px] text-[12px] font-medium text-warn">⚠ {advice}</p>
       )}
     </div>
   );
