@@ -15,6 +15,7 @@ import {
   fetchSettings,
   fetchWorkoutLogs,
   upsertDailyLog as remoteUpsertLog,
+  upsertProfile as remoteUpsertProfile,
   upsertWorkoutLog as remoteUpsertWorkout,
 } from '@/lib/sync';
 
@@ -88,8 +89,15 @@ export const useStore = create<Store>()(
         });
       },
 
-      setSettings: (patch) =>
-        set((s) => ({ settings: { ...s.settings, ...patch } })),
+      setSettings: (patch) => {
+        set((s) => ({ settings: { ...s.settings, ...patch } }));
+        const userId = get().userId;
+        if (userId) {
+          remoteUpsertProfile(userId, patch).catch((err) =>
+            console.error('Settings sync failed', err),
+          );
+        }
+      },
 
       upsertLog: (date, patch) => {
         set((s) => ({

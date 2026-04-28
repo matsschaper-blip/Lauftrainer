@@ -62,6 +62,37 @@ function rowToLog(row: DailyLogRow): DailyLog {
   return log;
 }
 
+const PROFILE_FIELD_MAP: Array<[keyof Settings, string]> = [
+  ['name', 'name'],
+  ['startDate', 'start_date'],
+  ['weekOffset', 'week_offset'],
+  ['hfMax', 'hf_max'],
+  ['rhrBaseline', 'rhr_baseline'],
+  ['weight', 'weight'],
+  ['height', 'height'],
+  ['goalPace', 'goal_pace'],
+  ['weeklyVolumeTarget', 'weekly_volume_target'],
+];
+
+export async function upsertProfile(
+  userId: string,
+  patch: Partial<Settings>,
+): Promise<void> {
+  const payload: Record<string, unknown> = { id: userId };
+  for (const [tsKey, dbKey] of PROFILE_FIELD_MAP) {
+    if (tsKey in patch) {
+      payload[dbKey] = patch[tsKey] ?? null;
+    }
+  }
+  const { error } = await supabase
+    .from('profiles')
+    .upsert(payload, { onConflict: 'id' });
+  if (error) {
+    console.error('upsertProfile', error);
+    throw error;
+  }
+}
+
 export async function fetchSettings(
   userId: string,
   fallback: Settings,
