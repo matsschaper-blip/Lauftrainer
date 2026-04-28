@@ -374,8 +374,20 @@ function DayDetail({ row, onClose }: { row: DayRow; onClose: () => void }) {
           {workout.weather && (
             <p className="text-[13px] text-ink-soft">Wetter: {workout.weather}</p>
           )}
+          {workout.zones && (
+            <p className="mt-1 font-mono text-[12px] text-ink-soft">
+              Z1 {fmtZone(workout.zones.z1)} · Z2 {fmtZone(workout.zones.z2)} · Z3{' '}
+              {fmtZone(workout.zones.z3)} · Z4 {fmtZone(workout.zones.z4)} · Z5{' '}
+              {fmtZone(workout.zones.z5)}
+            </p>
+          )}
           {workout.notes && (
             <p className="mt-2 text-[13px] text-ink-soft">{workout.notes}</p>
+          )}
+          {workout.stravaId && (
+            <p className="mt-1 text-[11px] text-ink-muted">
+              Strava-ID #{workout.stravaId}
+            </p>
           )}
         </div>
       )}
@@ -409,6 +421,13 @@ function DayDetail({ row, onClose }: { row: DayRow; onClose: () => void }) {
       </div>
     </>
   );
+}
+
+function fmtZone(seconds: number): string {
+  if (!seconds || seconds < 1) return '—';
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
 }
 
 function KeyVal({ label, value }: { label: string; value: string }) {

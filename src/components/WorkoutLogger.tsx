@@ -6,7 +6,20 @@ import { useStore } from '@/store/useStore';
 import { useWeather } from '@/hooks/useWeather';
 import { formatWeatherLong } from '@/lib/weather';
 import { todayISO } from '@/utils/date';
-import type { DayKey, PlannedWorkout, WorkoutLog } from '@/types';
+import {
+  fetchActivities,
+  fetchStream,
+  isRun,
+  todayStartEpochSeconds,
+} from '@/lib/strava';
+import { computeZones } from '@/utils/zones';
+import type {
+  DayKey,
+  PlannedWorkout,
+  WorkoutLog,
+  ZoneDistribution,
+  KmSplit,
+} from '@/types';
 
 interface Props {
   open: boolean;
@@ -26,6 +39,8 @@ const BLACKROLL_OPTIONS = [
 export function WorkoutLogger({ open, onClose, week, day, planned }: Props) {
   const existing = useStore((s) => s.trainings[week]?.[day]);
   const setWorkout = useStore((s) => s.setWorkout);
+  const stravaAthleteId = useStore((s) => s.stravaAthleteId);
+  const hfMax = useStore((s) => s.settings.hfMax);
   const { weather: liveWeather } = useWeather();
 
   const [distance, setDistance] = useState('');
@@ -37,6 +52,10 @@ export function WorkoutLogger({ open, onClose, week, day, planned }: Props) {
   const [youtube, setYoutube] = useState('');
   const [blackroll, setBlackroll] = useState('');
   const [notes, setNotes] = useState('');
+  const [stravaId, setStravaId] = useState<string | undefined>(undefined);
+  const [zones, setZones] = useState<ZoneDistribution | undefined>(undefined);
+  const [splits, setSplits] = useState<KmSplit[] | undefined>(undefined);
+  const [importing, setImporting] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -52,7 +71,55 @@ export function WorkoutLogger({ open, onClose, week, day, planned }: Props) {
     setYoutube(existing?.youtube ?? '');
     setBlackroll(existing?.blackroll ?? '');
     setNotes(existing?.notes ?? '');
+    setStravaId(existing?.stravaId);
+    setZones(existing?.zones);
+    setSplits(existing?.splits);
   }, [open, existing, planned.minutes, liveWeather]);
+
+  async function handleImportFromStrava() {
+    setImporting(true);
+    try {
+      const acts = await fetchActivities(todayStartEpochSeconds());
+      const runs = acts.filter(isRun);
+      if (runs.length === 0) {
+        showToast('Kein Strava-Lauf für heute gefunden');
+        return;
+      }
+      const a = runs[0];
+      setDistance((a.distance / 1000).toFixed(2));
+      setDuration(String(Math.round(a.moving_time / 60)));
+      if (a.average_heartrate) setAvgHr(String(Math.round(a.average_heartrate)));
+      if (a.max_heartrate) setMaxHr(String(a.max_heartrate));
+      setStravaId(String(a.id));
+
+      if (a.has_heartrate) {
+        try {
+          const stream = await fetchStream(a.id);
+          const z = computeZones(stream.heartrate?.data, stream.time?.data, hfMax);
+          setZones(z);
+        } catch (e) {
+          console.error('stream fetch failed', e);
+        }
+      }
+
+      if (a.splits_metric && a.splits_metric.length > 0) {
+        const ks: KmSplit[] = a.splits_metric.map((s) => ({
+          km: s.split,
+          time: s.elapsed_time,
+          pace: paceFromMps(s.average_speed),
+          hr: s.average_heartrate ? Math.round(s.average_heartrate) : undefined,
+        }));
+        setSplits(ks);
+      }
+
+      showToast('Strava-Daten übernommen');
+    } catch (e) {
+      console.error('import failed', e);
+      showToast('Strava-Import fehlgeschlagen');
+    } finally {
+      setImporting(false);
+    }
+  }
 
   function save() {
     const patch: Partial<WorkoutLog> = {
@@ -69,10 +136,21 @@ export function WorkoutLogger({ open, onClose, week, day, planned }: Props) {
     if (youtube.trim()) patch.youtube = youtube.trim();
     if (blackroll) patch.blackroll = blackroll;
     if (notes.trim()) patch.notes = notes.trim();
+    if (stravaId) patch.stravaId = stravaId;
+    if (zones) patch.zones = zones;
+    if (splits) patch.splits = splits;
 
     setWorkout(week, day, patch);
     showToast('Lauf geloggt');
     onClose();
+  }
+
+  function paceFromMps(mps: number): string {
+    if (mps <= 0) return '—';
+    const secPerKm = 1000 / mps;
+    const m = Math.floor(secPerKm / 60);
+    const s = Math.round(secPerKm % 60);
+    return `${m}:${String(s).padStart(2, '0')}`;
   }
 
   return (
@@ -80,7 +158,29 @@ export function WorkoutLogger({ open, onClose, week, day, planned }: Props) {
       <h2 className="font-display text-[22px] font-medium leading-tight tracking-tight">
         {planned.label}
       </h2>
-      <p className="mb-[18px] mt-1 text-[13px] text-ink-muted">{planned.description}</p>
+      <p className="mb-[14px] mt-1 text-[13px] text-ink-muted">{planned.description}</p>
+
+      {stravaAthleteId && (
+        <button
+          type="button"
+          onClick={handleImportFromStrava}
+          disabled={importing}
+          className="mb-[18px] w-full rounded-full border border-accent bg-accent-bg px-[18px] py-[12px] text-[13px] font-semibold text-accent transition active:scale-95 disabled:opacity-50"
+        >
+          {importing ? 'Importiere…' : '↓ Aus Strava importieren'}
+        </button>
+      )}
+
+      {zones && (
+        <div className="mb-[14px] rounded-card border border-line bg-bg-soft p-[10px]">
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+            HF-Zonen aus Strava
+          </p>
+          <p className="font-mono text-[12px] text-ink">
+            Z1 {fmtZ(zones.z1)} · Z2 {fmtZ(zones.z2)} · Z3 {fmtZ(zones.z3)} · Z4 {fmtZ(zones.z4)} · Z5 {fmtZ(zones.z5)}
+          </p>
+        </div>
+      )}
 
       <Row>
         <Field label="Distanz (km)">
@@ -208,4 +308,10 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function Row({ children }: { children: React.ReactNode }) {
   return <div className="grid grid-cols-2 gap-[10px]">{children}</div>;
+}
+
+function fmtZ(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
 }

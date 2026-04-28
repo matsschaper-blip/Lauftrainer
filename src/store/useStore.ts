@@ -14,6 +14,7 @@ import {
   fetchDailyLogs,
   fetchSettings,
   fetchShopping,
+  fetchStravaAthleteId,
   fetchWorkoutLogs,
   upsertDailyLog as remoteUpsertLog,
   upsertProfile as remoteUpsertProfile,
@@ -43,6 +44,7 @@ const initialState: AppState = {
     window.matchMedia?.('(prefers-color-scheme: dark)').matches
       ? 'dark'
       : 'light',
+  stravaAthleteId: null,
 };
 
 interface Actions {
@@ -59,6 +61,7 @@ interface Actions {
   resetAll: () => void;
   setUserId: (id: string | null) => void;
   bootstrap: (userId: string) => Promise<void>;
+  setStravaAthleteId: (id: number | null) => void;
 }
 
 export type Store = AppState & Actions & {
@@ -86,21 +89,26 @@ export const useStore = create<Store>()(
       bootstrap: async (userId) => {
         const fallbackSettings = get().settings;
         const fallbackShopping = get().shopping;
-        const [settings, logs, trainings, shopping] = await Promise.all([
-          fetchSettings(userId, fallbackSettings),
-          fetchDailyLogs(userId),
-          fetchWorkoutLogs(userId),
-          fetchShopping(userId),
-        ]);
+        const [settings, logs, trainings, shopping, stravaAthleteId] =
+          await Promise.all([
+            fetchSettings(userId, fallbackSettings),
+            fetchDailyLogs(userId),
+            fetchWorkoutLogs(userId),
+            fetchShopping(userId),
+            fetchStravaAthleteId(userId),
+          ]);
         set({
           userId,
           settings: settings ?? fallbackSettings,
           logs,
           trainings,
           shopping: shopping ?? fallbackShopping,
+          stravaAthleteId,
           bootstrapped: true,
         });
       },
+
+      setStravaAthleteId: (id) => set({ stravaAthleteId: id }),
 
       setSettings: (patch) => {
         set((s) => ({ settings: { ...s.settings, ...patch } }));

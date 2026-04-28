@@ -153,6 +153,7 @@ export interface AppState {
   trainings: Record<number, Record<string, WorkoutLog>>;
   shopping: ShoppingState;
   theme: Theme;
+  stravaAthleteId: number | null;
 }
 
 export type ScreenKey = 'heute' | 'plan' | 'rezepte' | 'verlauf' | 'mehr';

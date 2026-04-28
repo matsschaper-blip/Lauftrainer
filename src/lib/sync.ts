@@ -21,6 +21,7 @@ interface ProfileRow {
   goal_pace: string | null;
   weekly_volume_target: number | null;
   theme: 'light' | 'dark';
+  strava_athlete_id: number | null;
 }
 
 interface DailyLogRow {
@@ -116,6 +117,16 @@ export async function fetchSettings(
   }
   if (!data) return null;
   return profileToSettings(data as ProfileRow, fallback);
+}
+
+export async function fetchStravaAthleteId(userId: string): Promise<number | null> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('strava_athlete_id')
+    .eq('id', userId)
+    .maybeSingle();
+  if (error || !data) return null;
+  return (data as { strava_athlete_id: number | null }).strava_athlete_id;
 }
 
 export async function fetchDailyLogs(

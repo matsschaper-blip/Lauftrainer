@@ -6,6 +6,7 @@ import { useStore } from '@/store/useStore';
 import { REFS, type RefKey } from '@/data/refs';
 import { generatePreRun, generateWeekReview } from '@/utils/templates';
 import { todayISO } from '@/utils/date';
+import { startConnect, disconnect as stravaDisconnect } from '@/lib/strava';
 
 const REFS_LIST: { key: RefKey; sub: string }[] = [
   { key: 'zones', sub: 'Z2 134–147 · Long-Run-Zone' },
@@ -21,6 +22,23 @@ export function Mehr() {
   const [openRef, setOpenRef] = useState<RefKey | null>(null);
   const [openTemplate, setOpenTemplate] = useState<'preRun' | 'weekReview' | null>(null);
   const [openSettings, setOpenSettings] = useState(false);
+  const stravaAthleteId = useStore((s) => s.stravaAthleteId);
+  const setStravaAthleteId = useStore((s) => s.setStravaAthleteId);
+
+  async function handleStravaToggle() {
+    if (stravaAthleteId) {
+      if (!confirm('Strava-Verbindung trennen?')) return;
+      try {
+        await stravaDisconnect();
+        setStravaAthleteId(null);
+        showToast('Strava getrennt');
+      } catch {
+        showToast('Trennen fehlgeschlagen');
+      }
+    } else {
+      startConnect(); // redirect, kein await
+    }
+  }
 
   return (
     <section>
@@ -85,6 +103,23 @@ export function Mehr() {
             last={i === REFS_LIST.length - 1}
           />
         ))}
+      </div>
+
+      <h3 className="mb-[10px] mt-[24px] font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+        Verbindungen
+      </h3>
+
+      <div className="mb-[14px] overflow-hidden rounded-card border border-line">
+        <MenuRow
+          label={stravaAthleteId ? 'Strava verbunden' : 'Mit Strava verbinden'}
+          sub={
+            stravaAthleteId
+              ? `Athlet #${stravaAthleteId} · tippen zum Trennen`
+              : 'Auto-Import von Aktivitäten + HF-Zonen'
+          }
+          onClick={handleStravaToggle}
+          last
+        />
       </div>
 
       <h3 className="mb-[10px] mt-[24px] font-sans text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">

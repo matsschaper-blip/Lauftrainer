@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { useSession } from '@/hooks/useSession';
 import { useBootstrap } from '@/hooks/useBootstrap';
+import { useStravaCallback } from '@/hooks/useStravaCallback';
 import { LoginScreen } from './LoginScreen';
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
 export function AuthGate({ children }: Props) {
   const session = useSession();
   useBootstrap(session);
+  useStravaCallback(session);
 
   if (session === undefined) {
     return (
