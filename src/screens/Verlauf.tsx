@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useStore } from '@/store/useStore';
 import { Modal } from '@/components/Modal';
-import type { DailyLog, WorkoutLog } from '@/types';
+import type { DailyLog, DayKey, WorkoutLog } from '@/types';
 
 interface DayRow {
   date: string;
@@ -12,8 +12,12 @@ interface DayRow {
 export function Verlauf() {
   const logs = useStore((s) => s.logs);
   const trainings = useStore((s) => s.trainings);
+  const startDate = useStore((s) => s.settings.startDate);
 
-  const workoutsByDate = useMemo(() => indexWorkoutsByDate(trainings), [trainings]);
+  const workoutsByDate = useMemo(
+    () => indexWorkoutsByDate(trainings, startDate),
+    [trainings, startDate],
+  );
   const last7 = useMemo(
     () => buildLast7Stats(logs, workoutsByDate),
     [logs, workoutsByDate],
@@ -95,14 +99,29 @@ export function Verlauf() {
 
 function indexWorkoutsByDate(
   trainings: Record<number, Record<string, WorkoutLog>>,
+  startDate: string,
 ): Record<string, WorkoutLog> {
   const byDate: Record<string, WorkoutLog> = {};
-  for (const week of Object.values(trainings)) {
-    for (const w of Object.values(week)) {
-      if (w.date) byDate[w.date] = w;
+  for (const [weekStr, week] of Object.entries(trainings)) {
+    const weekNum = Number(weekStr);
+    for (const [day, w] of Object.entries(week)) {
+      const date = w.date ?? computeDate(startDate, weekNum, day as DayKey);
+      if (date) byDate[date] = w;
     }
   }
   return byDate;
+}
+
+const DAY_OFFSET: Record<DayKey, number> = {
+  mo: 0, di: 1, mi: 2, do: 3, fr: 4, sa: 5, so: 6,
+};
+
+function computeDate(startDate: string, week: number, day: DayKey): string | null {
+  const start = new Date(`${startDate}T00:00:00`);
+  if (Number.isNaN(start.getTime())) return null;
+  const offset = (week - 1) * 7 + DAY_OFFSET[day];
+  start.setDate(start.getDate() + offset);
+  return start.toISOString().slice(0, 10);
 }
 
 interface ChartPoint {
