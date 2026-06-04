@@ -13,7 +13,7 @@ import {
   todayISO,
   tomorrowDayKey,
 } from '@/utils/date';
-import { PLAN } from '@/data/plan';
+import { PLAN, PHASE_LABELS, TOTAL_WEEKS } from '@/data/plan';
 import type { DayKey } from '@/types';
 import { QuickLogModal, type LoggerType } from '@/components/QuickLogModal';
 import { WorkoutDetailModal } from '@/components/WorkoutDetailModal';
@@ -21,9 +21,10 @@ import { WorkoutLogger } from '@/components/WorkoutLogger';
 import { useWeather } from '@/hooks/useWeather';
 import { formatWeatherLong, weatherAdvice } from '@/lib/weather';
 import {
+  activityDateKey,
+  daysAgoStartEpochSeconds,
   fetchActivities,
   isRun,
-  todayStartEpochSeconds,
   type StravaActivity,
 } from '@/lib/strava';
 import type { PlannedWorkout } from '@/types';
@@ -32,6 +33,55 @@ interface NextRun {
   workout: PlannedWorkout;
   week: number;
   daysAway: number; // 1 = morgen, 2 = übermorgen, 7 = in 1 Woche, etc.
+}
+
+interface PendingMatch {
+  week: number;
+  day: DayKey;
+  planned: PlannedWorkout;
+  dateISO: string;
+  activity: StravaActivity;
+}
+
+const DAY_OFFSET: Record<DayKey, number> = {
+  mo: 0, di: 1, mi: 2, do: 3, fr: 4, sa: 5, so: 6,
+};
+
+function dateForWeekDay(startDate: string, week: number, day: DayKey): string | null {
+  const start = new Date(`${startDate}T00:00:00`);
+  if (Number.isNaN(start.getTime())) return null;
+  start.setDate(start.getDate() + (week - 1) * 7 + DAY_OFFSET[day]);
+  return start.toISOString().slice(0, 10);
+}
+
+function collectUnmatchedRunSlots(
+  startDate: string,
+  currentWeek: number,
+  trainings: Record<number, Record<string, import('@/types').WorkoutLog>>,
+  daysBack: number,
+): { week: number; day: DayKey; planned: PlannedWorkout; dateISO: string }[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const minDate = new Date(today);
+  minDate.setDate(minDate.getDate() - daysBack);
+  const minISO = minDate.toISOString().slice(0, 10);
+  const todayISOstr = today.toISOString().slice(0, 10);
+  const out: { week: number; day: DayKey; planned: PlannedWorkout; dateISO: string }[] = [];
+  for (const weekNum of [currentWeek - 1, currentWeek]) {
+    const w = PLAN.find((p) => p.week === weekNum);
+    if (!w) continue;
+    for (const wo of w.workouts) {
+      const dateISO = dateForWeekDay(startDate, weekNum, wo.day);
+      if (!dateISO) continue;
+      if (dateISO < minISO || dateISO > todayISOstr) continue;
+      const t = trainings[weekNum]?.[wo.day];
+      if (t?.completed && t?.stravaId) continue;
+      out.push({ week: weekNum, day: wo.day, planned: wo, dateISO });
+    }
+  }
+  // älteste zuerst
+  out.sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+  return out;
 }
 
 function findNextRun(
@@ -93,8 +143,8 @@ export function Heute() {
 
   const [logger, setLogger] = useState<LoggerType | null>(null);
   const [workoutDetail, setWorkoutDetail] = useState<PlannedWorkout | null>(null);
-  const [stravaMatch, setStravaMatch] = useState<StravaActivity | null>(null);
-  const [autoLoggerOpen, setAutoLoggerOpen] = useState(false);
+  const [pendingMatch, setPendingMatch] = useState<PendingMatch | null>(null);
+  const [loggerCtx, setLoggerCtx] = useState<PendingMatch | null>(null);
   const { weather } = useWeather();
   const stravaAthleteId = useStore((s) => s.stravaAthleteId);
 
@@ -114,22 +164,38 @@ export function Heute() {
     return { done, total, minutes };
   }, [week, trainings, currentWeek]);
 
-  // Strava Auto-Match: heutige Activity finden, falls verbunden + Workout heute + noch nicht abgehakt
-  const todayWorkoutDone = !!trainings[currentWeek]?.[today]?.completed;
-  const todayWorkoutHasStrava = !!trainings[currentWeek]?.[today]?.stravaId;
+  // Strava Auto-Match: scannt die letzten 7 Tage nach geplanten Läufen ohne Strava-Verknüpfung
   useEffect(() => {
-    if (!stravaAthleteId || !todayWorkout || todayWorkoutDone || todayWorkoutHasStrava) {
-      setStravaMatch(null);
+    if (!stravaAthleteId) {
+      setPendingMatch(null);
       return;
     }
     let cancelled = false;
     void (async () => {
       try {
-        const acts = await fetchActivities(todayStartEpochSeconds());
-        const runs = acts.filter(isRun);
-        if (!cancelled && runs.length > 0) {
-          setStravaMatch(runs[0]);
+        const candidates = collectUnmatchedRunSlots(
+          settings.startDate,
+          currentWeek,
+          trainings,
+          7,
+        );
+        if (candidates.length === 0) {
+          if (!cancelled) setPendingMatch(null);
+          return;
         }
+        const acts = await fetchActivities(daysAgoStartEpochSeconds(8));
+        const runs = acts.filter(isRun);
+        if (runs.length === 0 || cancelled) return;
+        for (const c of candidates) {
+          const hit = runs.find((r) => activityDateKey(r) === c.dateISO);
+          if (hit) {
+            if (!cancelled) {
+              setPendingMatch({ ...c, activity: hit });
+            }
+            return;
+          }
+        }
+        if (!cancelled) setPendingMatch(null);
       } catch {
         /* silent */
       }
@@ -137,7 +203,7 @@ export function Heute() {
     return () => {
       cancelled = true;
     };
-  }, [stravaAthleteId, todayWorkout, todayWorkoutDone, todayWorkoutHasStrava, today]);
+  }, [stravaAthleteId, currentWeek, trainings, settings.startDate]);
 
   // Ø RHR letzte 7 Tage
   const rhrAvg = useMemo(() => {
@@ -154,22 +220,32 @@ export function Heute() {
       <h1 className="font-display text-[28px] font-normal leading-tight tracking-tight">
         {greeting()}, <em className="text-accent">{settings.name}</em>.
       </h1>
-      <p className="mb-[22px] mt-1 font-mono text-[12px] uppercase tracking-[0.08em] text-ink-muted">
-        {formatDate(todayISO())} · Woche {currentWeek}
+      <p className="mt-1 font-mono text-[12px] uppercase tracking-[0.08em] text-ink-muted">
+        {formatDate(todayISO())} · Woche {currentWeek}/{TOTAL_WEEKS}
       </p>
+      {week && (
+        <p className="mb-[22px] mt-[2px] font-mono text-[11px] tracking-[0.05em] text-accent">
+          Phase {week.phase} · {PHASE_LABELS[week.phase]}
+          {week.deload ? ' · Deload' : ''}
+          {week.test ? ` · TEST ${week.test}` : ''}
+          {week.race ? ' · RACE WEEK' : ''}
+        </p>
+      )}
 
       {weather && (todayWorkout || tomorrowWorkout) && (
         <WeatherStrip weather={weather} />
       )}
 
-      {stravaMatch && todayWorkout && (
+      {pendingMatch && (
         <StravaMatchBanner
-          activity={stravaMatch}
+          activity={pendingMatch.activity}
+          dateISO={pendingMatch.dateISO}
+          isPast={pendingMatch.dateISO < todayISO()}
           onAccept={() => {
-            setAutoLoggerOpen(true);
-            setStravaMatch(null);
+            setLoggerCtx(pendingMatch);
+            setPendingMatch(null);
           }}
-          onDismiss={() => setStravaMatch(null)}
+          onDismiss={() => setPendingMatch(null)}
         />
       )}
 
@@ -204,13 +280,15 @@ export function Heute() {
         workout={workoutDetail}
       />
 
-      {todayWorkout && (
+      {loggerCtx && (
         <WorkoutLogger
-          open={autoLoggerOpen}
-          onClose={() => setAutoLoggerOpen(false)}
-          week={currentWeek}
-          day={today}
-          planned={todayWorkout}
+          open
+          onClose={() => setLoggerCtx(null)}
+          week={loggerCtx.week}
+          day={loggerCtx.day}
+          planned={loggerCtx.planned}
+          targetDateISO={loggerCtx.dateISO}
+          presetActivity={loggerCtx.activity}
           autoImport
         />
       )}
@@ -370,10 +448,14 @@ function StrengthCard({ label }: { label: string }) {
 
 function StravaMatchBanner({
   activity,
+  dateISO,
+  isPast,
   onAccept,
   onDismiss,
 }: {
   activity: StravaActivity;
+  dateISO: string;
+  isPast: boolean;
   onAccept: () => void;
   onDismiss: () => void;
 }) {
@@ -382,7 +464,7 @@ function StravaMatchBanner({
   return (
     <div className="mb-3 rounded-card border border-accent bg-accent-bg p-[14px]">
       <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">
-        Strava-Lauf gefunden
+        {isPast ? `Strava-Lauf vom ${formatDate(dateISO)}` : 'Strava-Lauf gefunden'}
       </p>
       <p className="mt-1 font-mono text-[13px] text-ink">
         {km} km · {min} Min

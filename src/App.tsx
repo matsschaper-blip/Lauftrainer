@@ -34,6 +34,12 @@ export default function App() {
     if (meta) meta.setAttribute('content', THEME_COLOR[theme]);
   }, [theme]);
 
+  useEffect(() => {
+    const onGoHome = () => setActive('heute');
+    window.addEventListener('lauftrainer:go-home', onGoHome);
+    return () => window.removeEventListener('lauftrainer:go-home', onGoHome);
+  }, []);
+
   const Screen = SCREENS[active];
 
   return (

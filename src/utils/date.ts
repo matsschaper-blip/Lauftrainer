@@ -83,11 +83,11 @@ export function dayAfter(day: DayKey, offset: number): DayKey {
   return DAY_ORDER[idx];
 }
 
-const PLAN_TOTAL_WEEKS = 22;
+const PLAN_TOTAL_WEEKS = 50;
 
 /**
  * Berechnet die aktuelle Trainingswoche aus startDate + manuellem Offset.
- * Clamp auf 1..22.
+ * Clamp auf 1..50 (Race-Woche).
  */
 export function computeCurrentWeek(startDate: string, weekOffset: number): number {
   const start = new Date(`${startDate}T00:00:00`);

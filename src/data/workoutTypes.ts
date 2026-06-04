@@ -166,6 +166,116 @@ export const WORKOUT_TYPES: Record<WorkoutType, WorkoutTypeDetail> = {
       'Test-Einheit. Möglichst flache Strecke wählen, Wetter beachten (nicht bei extremer Hitze/Kälte). Daten in App eintragen — wir verwenden sie zum Adapt der nächsten Phase.',
   },
 
+  threshold: {
+    name: 'Threshold / Cruise',
+    flow: [
+      {
+        phase: 'Warm-up extended',
+        duration: '12–15 Min',
+        desc: '5 Min locker traben + dynamische Mobilisation + 4×100m Steigerungen + 2 Min Pause vor Hauptbelastung.',
+      },
+      {
+        phase: 'Hauptteil',
+        duration: 'siehe Plan',
+        desc: 'T-Pace (~5:00/km, kalibriert nach TEST A in W14). Atmung: tief und kontrolliert, NICHT keuchend. Sprechen würde in 3–4-Wort-Sätzen funktionieren. Bei mehrteiligen Intervallen: Trab-Pausen wirklich locker (Z1–Z2). Wenn das letzte Intervall zerfällt — abbrechen.',
+      },
+      {
+        phase: 'Cool-Down',
+        duration: '8–10 Min',
+        desc: '5–10 Min ruhig auslaufen + leichtes Dehnen.',
+      },
+    ],
+    blackroll: 'Slot 1 + Knie-Spezial (10 Min): besonders gründlich nach Threshold',
+    pre: {
+      time: '60–90 Min vorher',
+      options: [
+        'Hafer-light: 50g Haferflocken + Milch + 1 Banane + 1 TL Honig (~50g Carbs)',
+        '2 Scheiben Vollkornbrot mit Honig + 1 Banane',
+        '30 Min vorher: 1 Espresso',
+      ],
+    },
+    post: {
+      time: 'innerhalb 60 Min',
+      options: [
+        'Schnellverfügbare Carbs + Protein: Reis mit Linsen + Gemüse + Joghurt',
+        'Pasta mit Tomatensauce + Käse + Salat',
+        'Recovery-Smoothie + Brot mit Hummus',
+      ],
+    },
+    notes:
+      'Threshold = "comfortably hard". Du sollst es 45–60 Min am Stück halten KÖNNEN — wir machen aber Intervalle, weil das im Wiederaufbau verträglicher ist. NICHT machen wenn schlecht geschlafen, krank oder mehrere Tage gestresst — auf Easy umlegen.',
+  },
+
+  vo2: {
+    name: 'VO2max Intervalle',
+    flow: [
+      {
+        phase: 'Warm-up extended',
+        duration: '15 Min',
+        desc: '8 Min locker traben + dynamische Mobilisation + 4×100m Steigerungen + 2 Min Pause. VO2max-Sessions brauchen mehr Aufwärmen als Threshold.',
+      },
+      {
+        phase: 'Hauptteil',
+        duration: 'siehe Plan',
+        desc: 'I-Pace (~4:25/km, RPE 8.5–9, ~95% HFmax). Intervalle 3–5 Min, Trab-Pausen 3 Min sehr locker. Wenn die letzten 2 Intervalle nicht in der Ziel-Pace machbar sind: Session beenden, NICHT durchquälen — Verletzungsrisiko steigt.',
+      },
+      {
+        phase: 'Cool-Down',
+        duration: '10 Min',
+        desc: '10 Min ruhig auslaufen + leichtes Dehnen.',
+      },
+    ],
+    blackroll: 'Slot 1 + Knie-Spezial (10 Min) Pflicht',
+    pre: {
+      time: '90 Min vorher',
+      options: [
+        'Hafer-Standard: 60g Haferflocken + Milch + Banane + Honig',
+        '30 Min vorher: 1 Espresso + 1 Dattel',
+      ],
+    },
+    post: {
+      time: 'innerhalb 30–60 Min',
+      options: [
+        'Recovery-Smoothie ZUERST (200g Skyr + Banane + Beeren + Hafer + Erdnussmus + Milch)',
+        'Vollwertiges Frühstück 60 Min später',
+      ],
+    },
+    notes:
+      'Höchste Intensität im Plan. Mindestens 48 h Abstand zu nächster Quality-Einheit. KEIN VO2max bei Schlaf <5h, RHR +5 über Baseline, oder akutem Stress. Nächster Tag bewusst easy.',
+  },
+
+  strides: {
+    name: 'Easy + Strides',
+    flow: [
+      {
+        phase: 'Warm-up',
+        duration: '8 Min',
+        desc: 'Wie bei Easy Run: 3 Min gehen/traben + Mobilisation.',
+      },
+      {
+        phase: 'Hauptteil',
+        duration: 'siehe Plan',
+        desc: 'Easy Z2 (134–147 bpm) wie gewohnt. AM ENDE: 4–8×20s Strides — schnelles aber lockeres Laufen (RPE 7, NICHT all-out), je 1 Min lockerer Trab dazwischen. Letzte Strides nicht schneller als erste.',
+      },
+      {
+        phase: 'Cool-Down',
+        duration: '3–5 Min',
+        desc: '3 Min auslaufen.',
+      },
+    ],
+    blackroll: 'Slot 1 (5 Min)',
+    pre: {
+      time: '30–60 Min vorher',
+      options: ['Wie Easy Run', 'Bei <60 Min: nüchtern + Glas Wasser + Kaffee'],
+    },
+    post: {
+      time: 'innerhalb 60 Min',
+      options: ['Vollwertiges Frühstück (Haferbrei + Quark + Beeren)', 'Recovery-Smoothie'],
+    },
+    notes:
+      'Strides sind KEIN Quality — sie sind neuromuskulärer Stimulus. Lockerheit > Geschwindigkeit. Konzeptuell wie ein Schnelligkeits-Reminder, der die Easy-Pace nicht müder macht.',
+  },
+
   race: {
     name: 'Wettkampf',
     flow: [
@@ -177,7 +287,7 @@ export const WORKOUT_TYPES: Record<WorkoutType, WorkoutTypeDetail> = {
       {
         phase: 'Wettkampf',
         duration: '21,1 km',
-        desc: 'Ziel-Pace 5:40/km für Sub-2h. Erste 5 km BEWUSST nicht zu schnell (Adrenalin macht 10–15s schneller als gedacht). Mitte: Pace halten. Letzte 5 km: ggf. minimal beschleunigen wenn noch Reserven.',
+        desc: 'Ziel-Pace 4:58/km für Sub-1:45 (Stretch 1:42 = 4:50/km). Erste 5 km BEWUSST nicht zu schnell (Adrenalin macht 10–15s schneller als gedacht). Mitte: Pace halten. Letzte 5 km: Negativ-Split anpeilen wenn HF und Atmung stabil.',
       },
       {
         phase: 'Cool-Down',
