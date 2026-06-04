@@ -10,14 +10,19 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur">
       <div className="mx-auto flex max-w-[700px] items-center justify-between px-[18px] py-[14px]">
-        <div className="flex items-baseline gap-[6px]">
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent('lauftrainer:go-home'))}
+          aria-label="Zur Startseite"
+          className="flex items-baseline gap-[6px] text-left active:scale-95 transition"
+        >
           <span className="font-display text-[18px] font-medium tracking-tight">
             Mats&rsquo; <em className="font-normal text-accent">Lauftrainer</em>
           </span>
           <span className="rounded bg-accent-bg px-[7px] py-[3px] font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-accent">
             W {currentWeek}
           </span>
-        </div>
+        </button>
         <button
           type="button"
           aria-label="Theme umschalten"

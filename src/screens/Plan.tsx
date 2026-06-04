@@ -1,14 +1,15 @@
 import { useMemo, useState } from 'react';
 import { useStore } from '@/store/useStore';
-import { PLAN } from '@/data/plan';
+import { PLAN, PHASE_LABELS, TOTAL_WEEKS } from '@/data/plan';
 import { computeCurrentWeek } from '@/utils/date';
 import { WeekDetailModal } from '@/components/WeekDetailModal';
 import type { PlanWeek } from '@/types';
 
-const PHASE_INFO: Record<1 | 2 | 3, { name: string; range: string; meta: string }> = {
-  1: { name: 'Basis', range: 'Woche 1–8', meta: 'Aerobe Basis · alles in Z2' },
-  2: { name: 'Aufbau', range: 'Woche 9–14', meta: 'Quality am Samstag dazu' },
-  3: { name: 'HM-Spezifik', range: 'Woche 15–22', meta: '5:40er Pace stabilisieren' },
+const PHASE_INFO: Record<1 | 2 | 3 | 4, { range: string; meta: string }> = {
+  1: { range: 'Woche 1–10', meta: 'Z2-dominante aerobe Basis · 4 Läufe · Strides' },
+  2: { range: 'Woche 11–30', meta: 'Pyramidal · Threshold + Long-Run-Wachstum · Test A+B' },
+  3: { range: 'Woche 31–46', meta: 'Polarized · VO2max + HM-Pace 4:58/km · Test C' },
+  4: { range: 'Woche 47–50', meta: 'Taper + Race · Hannover 12.04.2027' },
 };
 
 export function Plan() {
@@ -18,7 +19,7 @@ export function Plan() {
   const [openWeek, setOpenWeek] = useState<number | null>(null);
 
   const grouped = useMemo(() => {
-    const map = new Map<1 | 2 | 3, PlanWeek[]>();
+    const map = new Map<1 | 2 | 3 | 4, PlanWeek[]>();
     for (const w of PLAN) {
       const arr = map.get(w.phase) ?? [];
       arr.push(w);
@@ -31,7 +32,7 @@ export function Plan() {
     <section>
       <div className="mb-6 border-b border-line pb-5">
         <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">
-          22 Wochen · 3 Phasen
+          {TOTAL_WEEKS} Wochen · 4 Phasen · Hannover 12.04.2027
         </p>
         <h1 className="font-display text-[clamp(28px,7vw,38px)] font-normal leading-tight tracking-tight">
           Der <em className="font-light text-accent">Plan</em>.
@@ -41,8 +42,9 @@ export function Plan() {
         </p>
       </div>
 
-      {([1, 2, 3] as const).map((phase) => {
+      {([1, 2, 3, 4] as const).map((phase) => {
         const info = PHASE_INFO[phase];
+        const name = PHASE_LABELS[phase];
         const weeks = grouped.get(phase) ?? [];
         return (
           <div
@@ -57,7 +59,7 @@ export function Plan() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
                   {info.range}
                 </p>
-                <p className="font-display text-[18px] font-medium">{info.name}</p>
+                <p className="font-display text-[18px] font-medium">{name}</p>
                 <p className="mt-[2px] text-[12px] text-ink-muted">{info.meta}</p>
               </div>
             </div>

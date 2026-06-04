@@ -1,5 +1,13 @@
 export type DayKey = 'mo' | 'di' | 'mi' | 'do' | 'fr' | 'sa' | 'so';
-export type WorkoutType = 'easy' | 'long' | 'tempo' | 'race' | 'test';
+export type WorkoutType =
+  | 'easy'
+  | 'long'
+  | 'tempo'
+  | 'threshold'
+  | 'vo2'
+  | 'strides'
+  | 'race'
+  | 'test';
 export type Theme = 'light' | 'dark';
 
 export interface Settings {
@@ -65,10 +73,10 @@ export interface ZoneDistribution {
 
 export interface PlanWeek {
   week: number;
-  phase: 1 | 2 | 3;
+  phase: 1 | 2 | 3 | 4;
   workouts: PlannedWorkout[];
   deload?: boolean;
-  test?: 'A' | 'B' | 'C';
+  test?: 'A' | 'B' | 'C' | 'D';
   race?: boolean;
 }
 

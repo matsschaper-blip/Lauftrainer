@@ -14,7 +14,12 @@ interface Props {
   week: number | null;
 }
 
-const PHASE_NAME = { 1: 'Basis', 2: 'Aufbau', 3: 'HM-Spezifik' } as const;
+const PHASE_NAME = {
+  1: 'Wiederaufbau-Basis',
+  2: 'Pyramidal Aufbau',
+  3: 'Polarized Spezifik',
+  4: 'Race + Taper',
+} as const;
 
 export function WeekDetailModal({ open, onClose, week }: Props) {
   const settings = useStore((s) => s.settings);

@@ -7,10 +7,13 @@ import { useWeather } from '@/hooks/useWeather';
 import { formatWeatherLong } from '@/lib/weather';
 import { todayISO } from '@/utils/date';
 import {
+  activityDateKey,
+  daysAgoStartEpochSeconds,
   fetchActivities,
   fetchStream,
   isRun,
   todayStartEpochSeconds,
+  type StravaActivity,
 } from '@/lib/strava';
 import { computeZones } from '@/utils/zones';
 import type {
@@ -28,6 +31,8 @@ interface Props {
   day: DayKey;
   planned: PlannedWorkout;
   autoImport?: boolean;
+  targetDateISO?: string;
+  presetActivity?: StravaActivity;
 }
 
 const BLACKROLL_OPTIONS = [
@@ -37,7 +42,16 @@ const BLACKROLL_OPTIONS = [
   { value: 'ball', label: 'Slot 1 + Massageball Spots' },
 ];
 
-export function WorkoutLogger({ open, onClose, week, day, planned, autoImport }: Props) {
+export function WorkoutLogger({
+  open,
+  onClose,
+  week,
+  day,
+  planned,
+  autoImport,
+  targetDateISO,
+  presetActivity,
+}: Props) {
   const existing = useStore((s) => s.trainings[week]?.[day]);
   const setWorkout = useStore((s) => s.setWorkout);
   const stravaAthleteId = useStore((s) => s.stravaAthleteId);
@@ -76,21 +90,36 @@ export function WorkoutLogger({ open, onClose, week, day, planned, autoImport }:
     setZones(existing?.zones);
     setSplits(existing?.splits);
     if (autoImport && stravaAthleteId && !existing?.stravaId) {
-      void handleImportFromStrava();
+      void handleImportFromStrava(presetActivity);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, existing, planned.minutes, liveWeather, autoImport]);
 
-  async function handleImportFromStrava() {
+  async function handleImportFromStrava(preset?: StravaActivity) {
     setImporting(true);
     try {
-      const acts = await fetchActivities(todayStartEpochSeconds());
-      const runs = acts.filter(isRun);
-      if (runs.length === 0) {
-        showToast('Kein Strava-Lauf für heute gefunden');
-        return;
+      let a: StravaActivity | undefined = preset;
+      if (!a) {
+        const isPast = targetDateISO && targetDateISO < todayISO();
+        const after = isPast
+          ? daysAgoStartEpochSeconds(8)
+          : todayStartEpochSeconds();
+        const acts = await fetchActivities(after);
+        const runs = acts.filter(isRun);
+        if (targetDateISO) {
+          a = runs.find((r) => activityDateKey(r) === targetDateISO);
+        } else {
+          a = runs[0];
+        }
+        if (!a) {
+          showToast(
+            targetDateISO
+              ? `Kein Strava-Lauf für ${targetDateISO} gefunden`
+              : 'Kein Strava-Lauf für heute gefunden',
+          );
+          return;
+        }
       }
-      const a = runs[0];
       setDistance((a.distance / 1000).toFixed(2));
       setDuration(String(Math.round(a.moving_time / 60)));
       if (a.average_heartrate) setAvgHr(String(Math.round(a.average_heartrate)));
@@ -131,7 +160,7 @@ export function WorkoutLogger({ open, onClose, week, day, planned, autoImport }:
     const patch: Partial<WorkoutLog> = {
       completed: true,
       type: planned.type,
-      date: existing?.date ?? todayISO(),
+      date: existing?.date ?? targetDateISO ?? todayISO(),
     };
     if (distance) patch.distance = parseFloat(distance);
     if (duration) patch.duration = parseInt(duration, 10);
@@ -169,7 +198,7 @@ export function WorkoutLogger({ open, onClose, week, day, planned, autoImport }:
       {stravaAthleteId && (
         <button
           type="button"
-          onClick={handleImportFromStrava}
+          onClick={() => handleImportFromStrava()}
           disabled={importing}
           className="mb-[18px] w-full rounded-full border border-accent bg-accent-bg px-[18px] py-[12px] text-[13px] font-semibold text-accent transition active:scale-95 disabled:opacity-50"
         >

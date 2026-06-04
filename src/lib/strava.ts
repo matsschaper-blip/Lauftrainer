@@ -113,3 +113,14 @@ export function todayStartEpochSeconds(): number {
   d.setHours(0, 0, 0, 0);
   return Math.floor(d.getTime() / 1000);
 }
+
+export function daysAgoStartEpochSeconds(days: number): number {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - days);
+  return Math.floor(d.getTime() / 1000);
+}
+
+export function activityDateKey(a: StravaActivity): string {
+  return (a.start_date_local ?? a.start_date).slice(0, 10);
+}
