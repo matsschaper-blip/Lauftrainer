@@ -1,5 +1,5 @@
 import { planWeek } from '@/data/plan';
-import { computeCurrentWeek, todayDayKey, todayISO } from './date';
+import { computeCurrentWeek, localISO, todayDayKey, todayISO } from './date';
 import type { AppState } from '@/types';
 
 type TemplateState = Pick<AppState, 'settings' | 'logs' | 'trainings'>;
@@ -47,7 +47,7 @@ export function generateWeekReview(state: TemplateState): string {
   for (let i = 6; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(d.getDate() - i);
-    dates.push(d.toISOString().slice(0, 10));
+    dates.push(localISO(d));
   }
   const pickAvg = (key: 'sleep' | 'rhr' | 'energy') => {
     const vals = dates.map((d) => state.logs[d]?.[key]).filter((v): v is number => Boolean(v));

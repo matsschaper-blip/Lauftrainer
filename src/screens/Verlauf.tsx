@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { Modal } from '@/components/Modal';
+import { localISO } from '@/utils/date';
 import type { DailyLog, DayKey, KmSplit, WorkoutLog, ZoneDistribution } from '@/types';
 
 interface DayRow {
@@ -126,7 +127,7 @@ function computeDate(startDate: string, week: number, day: DayKey): string | nul
   if (Number.isNaN(start.getTime())) return null;
   const offset = (week - 1) * 7 + DAY_OFFSET[day];
   start.setDate(start.getDate() + offset);
-  return start.toISOString().slice(0, 10);
+  return localISO(start);
 }
 
 interface ChartPoint {
@@ -146,7 +147,7 @@ function build14DayData(
     const d = new Date(today);
     d.setDate(d.getDate() - i);
     d.setHours(0, 0, 0, 0);
-    const key = d.toISOString().slice(0, 10);
+    const key = localISO(d);
     const log = logs[key];
     const w = workoutsByDate[key];
     data.push({
@@ -172,7 +173,7 @@ function buildLast7Stats(
   for (let i = 6; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(d.getDate() - i);
-    const key = d.toISOString().slice(0, 10);
+    const key = localISO(d);
     const log = logs[key];
     if (log?.sleep) {
       sleepSum += log.sleep;
