@@ -8,6 +8,7 @@ import {
   dayName,
   formatDate,
   greeting,
+  localISO,
   strengthForDay,
   todayDayKey,
   todayISO,
@@ -51,7 +52,7 @@ function dateForWeekDay(startDate: string, week: number, day: DayKey): string | 
   const start = new Date(`${startDate}T00:00:00`);
   if (Number.isNaN(start.getTime())) return null;
   start.setDate(start.getDate() + (week - 1) * 7 + DAY_OFFSET[day]);
-  return start.toISOString().slice(0, 10);
+  return localISO(start);
 }
 
 function collectUnmatchedRunSlots(
@@ -64,8 +65,8 @@ function collectUnmatchedRunSlots(
   today.setHours(0, 0, 0, 0);
   const minDate = new Date(today);
   minDate.setDate(minDate.getDate() - daysBack);
-  const minISO = minDate.toISOString().slice(0, 10);
-  const todayISOstr = today.toISOString().slice(0, 10);
+  const minISO = localISO(minDate);
+  const todayISOstr = localISO(today);
   const out: { week: number; day: DayKey; planned: PlannedWorkout; dateISO: string }[] = [];
   for (const weekNum of [currentWeek - 1, currentWeek]) {
     const w = PLAN.find((p) => p.week === weekNum);
@@ -196,8 +197,8 @@ export function Heute() {
           }
         }
         if (!cancelled) setPendingMatch(null);
-      } catch {
-        /* silent */
+      } catch (e) {
+        console.error('Strava match failed', e);
       }
     })();
     return () => {

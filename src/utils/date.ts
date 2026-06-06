@@ -2,8 +2,20 @@ import type { DayKey } from '@/types';
 
 const DAY_KEYS: DayKey[] = ['so', 'mo', 'di', 'mi', 'do', 'fr', 'sa'];
 
+/**
+ * Liefert YYYY-MM-DD im LOKALEN Zeitzonen-Sinne.
+ * `Date.toISOString()` würde UTC verwenden — in CEST nachts/morgens
+ * gibt das einen Tag zu früh zurück.
+ */
+export function localISO(date: Date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 export function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  return localISO();
 }
 
 export function dayOf(date: Date): DayKey {
