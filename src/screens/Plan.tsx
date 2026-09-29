@@ -7,9 +7,9 @@ import type { PlanWeek } from '@/types';
 
 const PHASE_INFO: Record<1 | 2 | 3 | 4, { range: string; meta: string }> = {
   1: { range: 'Woche 1–10', meta: 'Z2-dominante aerobe Basis · 4 Läufe · Strides' },
-  2: { range: 'Woche 11–30', meta: 'Pyramidal · Threshold + Long-Run-Wachstum · Test A+B' },
-  3: { range: 'Woche 31–46', meta: 'Polarized · VO2max + HM-Pace 4:58/km · Test C' },
-  4: { range: 'Woche 47–50', meta: 'Taper + Race · Hannover 12.04.2027' },
+  2: { range: 'Woche 11–30', meta: 'Pyramidal · Threshold + Long-Run-Wachstum · Test A+B · Re-Test W26' },
+  3: { range: 'Woche 31–46', meta: 'VO2max + HM-Pace 4:44/km · Long Run A/B · Test C+D' },
+  4: { range: 'Woche 47–50', meta: 'Taper + Race · Hannover 11.04.2027 · Ziel 1:40' },
 };
 
 export function Plan() {
@@ -32,7 +32,7 @@ export function Plan() {
     <section>
       <div className="mb-6 border-b border-line pb-5">
         <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">
-          {TOTAL_WEEKS} Wochen · 4 Phasen · Hannover 12.04.2027
+          {TOTAL_WEEKS} Wochen · 4 Phasen · Hannover 11.04.2027
         </p>
         <h1 className="font-display text-[clamp(28px,7vw,38px)] font-normal leading-tight tracking-tight">
           Der <em className="font-light text-accent">Plan</em>.
