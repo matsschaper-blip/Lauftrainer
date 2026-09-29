@@ -12,7 +12,7 @@ export const WORKOUT_TYPES: Record<WorkoutType, WorkoutTypeDetail> = {
       {
         phase: 'Hauptteil',
         duration: 'siehe Plan',
-        desc: 'Locker in Z2 (134–147 bpm). Du sollst durchgehend reden können. Wenn Puls über 150 geht – langsamer werden, notfalls gehen. Pace ist nicht relevant – Puls ist Master.',
+        desc: 'Locker, HF ≤150 (~5:50–6:20/km). Du sollst durchgehend reden können. Wenn Puls über 150 geht – langsamer werden.',
       },
       {
         phase: 'Cool-Down',
@@ -53,7 +53,7 @@ export const WORKOUT_TYPES: Record<WorkoutType, WorkoutTypeDetail> = {
       {
         phase: 'Hauptteil',
         duration: 'siehe Plan',
-        desc: 'Locker in Z2 (134–147 bpm). Erste 10 Min ganz bewusst SEHR langsam — lieber zu langsam starten. HF wird über die Zeit driften (cardiac drift), das ist normal. Bei Long Runs >90 Min: alle 30–40 Min eine Energy Ball oder Datteln essen.',
+        desc: 'Long Run A: locker, HF ≤155 (~6:00–6:15/km). Long Run B: Rest locker, Tempo nur im Block laut Plan. Erste 10 Min ganz bewusst SEHR langsam — lieber zu langsam starten. HF wird über die Zeit driften (cardiac drift), das ist normal. Bei Long Runs >90 Min: alle 30–40 Min eine Energy Ball oder Datteln essen.',
       },
       {
         phase: 'Cool-Down',
@@ -102,7 +102,7 @@ export const WORKOUT_TYPES: Record<WorkoutType, WorkoutTypeDetail> = {
       {
         phase: 'Hauptteil',
         duration: 'siehe Plan',
-        desc: 'In Z4 (161–173 bpm) bzw. HM-Pace 5:40/km laut Plan. Bei Intervallen: Pace und Atmung beobachten. Trab-Pausen WIRKLICH locker (Z1–Z2). Wenn das letzte Intervall zerfällt — abbrechen, nicht Pace halten um den Preis.',
+        desc: 'HM-Pace 4:44/km (Ziel 1:40) bzw. laut Plan. Bei Intervallen: Pace und Atmung beobachten. Trab-Pausen WIRKLICH locker (Z1–Z2). Wenn das letzte Intervall zerfällt — abbrechen, nicht Pace halten um den Preis.',
       },
       {
         phase: 'Cool-Down',
@@ -142,7 +142,7 @@ export const WORKOUT_TYPES: Record<WorkoutType, WorkoutTypeDetail> = {
       {
         phase: 'Hauptteil',
         duration: 'siehe Plan',
-        desc: 'TEST A (W8): 30 Min konstant in Z2 (Ziel 142 bpm) — tracke Pace bei dieser HF.\nTEST B (W14): 10K Time Trial Race-Effort — Zeit + HF.\nTEST C (W20): 16K bei HM-Pace 5:40 — tracke HF-Drift (Ziel <5 bpm).',
+        desc: 'RE-TEST (W26): 10K Time Trial, flach & ausgeruht, gleichmäßig anlaufen — Ziel ≤45:45.\nTEST C (W34): 16K @ HM-Pace 4:44 — HF-Drift letzte vs. erste 4 km <5 bpm.\nTEST D (W45): 10K, am besten Wettkampf — Ziel ≤45:15.',
       },
       {
         phase: 'Cool-Down',
@@ -177,7 +177,7 @@ export const WORKOUT_TYPES: Record<WorkoutType, WorkoutTypeDetail> = {
       {
         phase: 'Hauptteil',
         duration: 'siehe Plan',
-        desc: 'T-Pace (~5:00/km, kalibriert nach TEST A in W14). Atmung: tief und kontrolliert, NICHT keuchend. Sprechen würde in 3–4-Wort-Sätzen funktionieren. Bei mehrteiligen Intervallen: Trab-Pausen wirklich locker (Z1–Z2). Wenn das letzte Intervall zerfällt — abbrechen.',
+        desc: 'T-Pace (4:45/km ab W23, nach Re-Test W26 neu; HF am Ende <172 → 5 s/km schneller). Atmung: tief und kontrolliert, NICHT keuchend. Sprechen würde in 3–4-Wort-Sätzen funktionieren. Bei mehrteiligen Intervallen: Trab-Pausen wirklich locker (Z1–Z2). Wenn das letzte Intervall zerfällt — abbrechen.',
       },
       {
         phase: 'Cool-Down',
@@ -217,7 +217,7 @@ export const WORKOUT_TYPES: Record<WorkoutType, WorkoutTypeDetail> = {
       {
         phase: 'Hauptteil',
         duration: 'siehe Plan',
-        desc: 'I-Pace (~4:25/km, RPE 8.5–9, ~95% HFmax). Intervalle 3–5 Min, Trab-Pausen 3 Min sehr locker. Wenn die letzten 2 Intervalle nicht in der Ziel-Pace machbar sind: Session beenden, NICHT durchquälen — Verletzungsrisiko steigt.',
+        desc: 'I-Pace (~4:15/km, RPE 8.5–9). Intervalle 3–5 Min, Trab-Pausen 3 Min sehr locker. Wenn die letzten 2 Intervalle nicht in der Ziel-Pace machbar sind: Session beenden, NICHT durchquälen — Verletzungsrisiko steigt.',
       },
       {
         phase: 'Cool-Down',
@@ -255,7 +255,7 @@ export const WORKOUT_TYPES: Record<WorkoutType, WorkoutTypeDetail> = {
       {
         phase: 'Hauptteil',
         duration: 'siehe Plan',
-        desc: 'Easy Z2 (134–147 bpm) wie gewohnt. AM ENDE: 4–8×20s Strides — schnelles aber lockeres Laufen (RPE 7, NICHT all-out), je 1 Min lockerer Trab dazwischen. Letzte Strides nicht schneller als erste.',
+        desc: 'Locker (HF ≤150) wie gewohnt. AM ENDE: 4–8×20s Strides — schnelles aber lockeres Laufen (RPE 7, NICHT all-out), je 1 Min lockerer Trab dazwischen. Letzte Strides nicht schneller als erste.',
       },
       {
         phase: 'Cool-Down',
@@ -287,7 +287,7 @@ export const WORKOUT_TYPES: Record<WorkoutType, WorkoutTypeDetail> = {
       {
         phase: 'Wettkampf',
         duration: '21,1 km',
-        desc: 'Ziel-Pace 4:58/km für Sub-1:45 (Stretch 1:42 = 4:50/km). Erste 5 km BEWUSST nicht zu schnell (Adrenalin macht 10–15s schneller als gedacht). Mitte: Pace halten. Letzte 5 km: Negativ-Split anpeilen wenn HF und Atmung stabil.',
+        desc: 'Ziel-Pace 4:44/km für 1:40. km 1–5 in 4:46–4:48. Erste 5 km BEWUSST nicht zu schnell (Adrenalin macht 10–15s schneller als gedacht). Mitte: Pace halten. Letzte 5 km: Negativ-Split anpeilen wenn HF und Atmung stabil.',
       },
       {
         phase: 'Cool-Down',
